@@ -11,10 +11,10 @@ class Store<T>(
 
     init {
         val dataPtr: COpaquePointer? = data?.let { StableRef.create(it).asCPointer() }
-        val finalizer = staticCFunction { ptr: COpaquePointer? ->
+        val finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>> = staticCFunction { ptr: COpaquePointer? ->
             ptr?.asStableRef<Any>()?.dispose()
         }
-        store = wasmtime_store_new(engine.engine, dataPtr, finalizer.reinterpret())
+        store = wasmtime_store_new(engine.engine, dataPtr, finalizer)
             ?: throw RuntimeException("Failed to create Wasmtime store")
     }
 

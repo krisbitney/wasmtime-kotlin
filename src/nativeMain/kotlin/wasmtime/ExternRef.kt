@@ -16,10 +16,10 @@ class ExternRef<T>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseabl
             this(
                 if (data != null) {
                     val dataPtr: COpaquePointer = StableRef.create(data).asCPointer()
-                    val finalizer = staticCFunction { ptr: COpaquePointer? ->
+                    val finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>> = staticCFunction { ptr: COpaquePointer? ->
                         ptr?.asStableRef<Any>()?.dispose()
                     }
-                    wasmtime_externref_new(dataPtr, finalizer.reinterpret()) ?: throw Error("failed to create ExternRef")
+                    wasmtime_externref_new(dataPtr, finalizer) ?: throw Error("failed to create ExternRef")
                 } else {
                     wasmtime_externref_new(null, null) ?: throw Error("failed to create ExternRef")
                 }
