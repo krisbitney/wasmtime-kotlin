@@ -138,7 +138,7 @@ class Func(
     }
 }
 
-fun cFuncCallback(
+private fun cFuncCallback(
     cEnv: COpaquePointer?,
     cCaller: CPointer<wasmtime_caller_t>?,
     cArgs: CPointer<wasmtime_val_t>?,
