@@ -1,5 +1,5 @@
 headers = wasmtime.h wasm.h wasi.h
-headerFilter = wasmtime/* wasm.h wasi.h
+headerFilter = wasmtime/* wasmtime.h wasm.h wasi.h
 package = wasmtime
 
 compilerOpts.mingw = -DWASM_API_EXTERN= -DWASI_API_EXTERN=
