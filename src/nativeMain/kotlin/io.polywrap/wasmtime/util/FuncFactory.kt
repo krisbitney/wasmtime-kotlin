@@ -81,6 +81,96 @@ class FuncFactory {
         }
     }
 
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any, R0: Any> wrap(
+        store: Store<T>,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        r0: ValType<R0>,
+        func: Function4<A0, A1, A2, A3, R0>
+    ): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3), arrayOf(r0))
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.call(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                )
+            }
+            if (result.isSuccess) {
+                val returned = result.getOrThrow()
+                Result.success(listOf(Val(r0, returned)))
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, R0: Any> wrap(
+        store: Store<T>,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>,
+        r0: ValType<R0>,
+        func: Function5<A0, A1, A2, A3, A4, R0>
+    ): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4), arrayOf(r0))
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.call(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                    a4.fromVal(params[4]),
+                )
+            }
+            if (result.isSuccess) {
+                val returned = result.getOrThrow()
+                Result.success(listOf(Val(r0, returned)))
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, A5: Any, R0: Any> wrap(
+        store: Store<T>,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>,
+        a5: ValType<A5>,
+        r0: ValType<R0>,
+        func: Function6<A0, A1, A2, A3, A4, A5, R0>
+    ): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4, a5), arrayOf(r0))
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.call(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                    a4.fromVal(params[4]),
+                    a5.fromVal(params[5]),
+                )
+            }
+            if (result.isSuccess) {
+                val returned = result.getOrThrow()
+                Result.success(listOf(Val(r0, returned)))
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
     fun <T>wrap(store: Store<T>, func: Consumer0): Func {
         val funcType = Func.wasmFunctype(null, null)
         return Func(store, funcType) { caller, params ->
@@ -140,6 +230,66 @@ class FuncFactory {
         }
     }
 
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, func: Consumer4<A0, A1, A2, A3>): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3), null)
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.accept(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                )
+            }
+            if (result.isSuccess) {
+                Result.success(listOf())
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, a4: ValType<A4>, func: Consumer5<A0, A1, A2, A3, A4>): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4), null)
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.accept(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                    a4.fromVal(params[4]),
+                )
+            }
+            if (result.isSuccess) {
+                Result.success(listOf())
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
+    fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, A5: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, a4: ValType<A4>, a5: ValType<A5>, func: Consumer6<A0, A1, A2, A3, A4, A5>): Func {
+        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4, a5), null)
+        return Func(store, funcType) { caller, params ->
+            val result = runCatching {
+                func.accept(
+                    a0.fromVal(params[0]),
+                    a1.fromVal(params[1]),
+                    a2.fromVal(params[2]),
+                    a3.fromVal(params[3]),
+                    a4.fromVal(params[4]),
+                    a5.fromVal(params[5]),
+                )
+            }
+            if (result.isSuccess) {
+                Result.success(listOf())
+            } else {
+                Result.failure(result.exceptionOrNull()!!)
+            }
+        }
+    }
+
     fun <R0: Any> func(fn: Func, r0: ValType<R0>): Function0<R0> {
         return object : Function0<R0> {
             override fun call(): R0 {
@@ -186,6 +336,57 @@ class FuncFactory {
         }
     }
 
+    fun <A0: Any, A1: Any, A2: Any, A3: Any, R0: Any> func(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        r0: ValType<R0>
+    ): Function4<A0, A1, A2, A3, R0> {
+        return object : Function4<A0, A1, A2, A3, R0> {
+            override fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3): R0 {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3))
+                return r0.fromVal(fn.call(vals)[0])
+            }
+        }
+    }
+
+    fun <A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, R0: Any> func(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>,
+        r0: ValType<R0>
+    ): Function5<A0, A1, A2, A3, A4, R0> {
+        return object : Function5<A0, A1, A2, A3, A4, R0> {
+            override fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4): R0 {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3), Val(a4, arg4))
+                return r0.fromVal(fn.call(vals)[0])
+            }
+        }
+    }
+
+    fun <A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, A5: Any, R0: Any> func(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>,
+        a5: ValType<A5>,
+        r0: ValType<R0>
+    ): Function6<A0, A1, A2, A3, A4, A5, R0> {
+        return object : Function6<A0, A1, A2, A3, A4, A5, R0> {
+            override fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5): R0 {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3), Val(a4, arg4), Val(a5, arg5))
+                return r0.fromVal(fn.call(vals)[0])
+            }
+        }
+    }
+
     fun consumer(fn: Func): Consumer0 {
         return object : Consumer0 {
             override fun accept() { fn.call() }
@@ -224,6 +425,54 @@ class FuncFactory {
         }
     }
 
+    fun <A0: Any, A1: Any, A2: Any, A3: Any> consumer(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>
+    ): Consumer4<A0, A1, A2, A3> {
+        return object : Consumer4<A0, A1, A2, A3> {
+            override fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3) {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3))
+                fn.call(vals)
+            }
+        }
+    }
+
+    fun <A0: Any, A1: Any, A2: Any, A3: Any, A4: Any> consumer(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>
+    ): Consumer5<A0, A1, A2, A3, A4> {
+        return object : Consumer5<A0, A1, A2, A3, A4> {
+            override fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4) {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3), Val(a4, arg4))
+                fn.call(vals)
+            }
+        }
+    }
+
+    fun <A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, A5: Any> consumer(
+        fn: Func,
+        a0: ValType<A0>,
+        a1: ValType<A1>,
+        a2: ValType<A2>,
+        a3: ValType<A3>,
+        a4: ValType<A4>,
+        a5: ValType<A5>
+    ): Consumer6<A0, A1, A2, A3, A4, A5> {
+        return object : Consumer6<A0, A1, A2, A3, A4, A5> {
+            override fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5) {
+                val vals = listOf(Val(a0, arg0), Val(a1, arg1), Val(a2, arg2), Val(a3, arg3), Val(a4, arg4), Val(a5, arg5))
+                fn.call(vals)
+            }
+        }
+    }
+
     interface Function0<R0> {
         fun call(): R0
     }
@@ -240,6 +489,18 @@ class FuncFactory {
         fun call(arg0: A0, arg1: A1, arg2: A2): R0
     }
 
+    interface Function4<A0, A1, A2, A3, R0> {
+        fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3): R0
+    }
+
+    interface Function5<A0, A1, A2, A3, A4, R0> {
+        fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4): R0
+    }
+
+    interface Function6<A0, A1, A2, A3, A4, A5, R0> {
+        fun call(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5): R0
+    }
+
     interface Consumer0 {
         fun accept()
     }
@@ -254,5 +515,17 @@ class FuncFactory {
 
     interface Consumer3<A0, A1, A2> {
         fun accept(arg0: A0, arg1: A1, arg2: A2)
+    }
+
+    interface Consumer4<A0, A1, A2, A3> {
+        fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3)
+    }
+
+    interface Consumer5<A0, A1, A2, A3, A4> {
+        fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4)
+    }
+
+    interface Consumer6<A0, A1, A2, A3, A4, A5> {
+        fun accept(arg0: A0, arg1: A1, arg2: A2, arg3: A3, arg4: A4, arg5: A5)
     }
 }
