@@ -3,8 +3,14 @@ Improve memory safety
  - create a wasmtimeScope function that creates a scope for the lifetime of wasmtime types.
  it should add types to a queue and then close the queue at the end of the scope.
 
- Improve thread safety
+Improve thread safety
  - review headers for thread safety guidelines
  - implement thread safety where possible
 
- Add KDoc documentation comments
+Add KDoc documentation comments
+
+Add tests
+
+Configure build script
+ - download correct wasmtime C library for each platform
+ - publish build artifacts for each target to maven central
