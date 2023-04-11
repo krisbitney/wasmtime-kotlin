@@ -1,3 +1,3 @@
 
-rootProject.name = "wasmtime-kotlin"
+rootProject.name = "wasmtime-kt"
 
