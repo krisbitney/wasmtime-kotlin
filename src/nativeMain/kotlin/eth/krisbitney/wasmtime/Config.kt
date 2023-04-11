@@ -54,8 +54,8 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
         wasmtime_config_wasm_memory64_set(config, value)
     }
 
-    fun setStrategy(strategy: wasmtime_strategy_t): Config = this.apply {
-        wasmtime_config_strategy_set(config, strategy)
+    fun setStrategy(strategy: WasmtimeStrategy): Config = this.apply {
+        wasmtime_config_strategy_set(config, strategy.ordinal.convert())
     }
 
     fun setParallelCompilation(value: Boolean): Config = this.apply {
@@ -70,12 +70,12 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
         wasmtime_config_cranelift_nan_canonicalization_set(config, value)
     }
 
-    fun setCraneliftOptLevel(optLevel: wasmtime_opt_level_t): Config = this.apply {
-        wasmtime_config_cranelift_opt_level_set(config, optLevel)
+    fun setCraneliftOptLevel(optLevel: OptLevel): Config = this.apply {
+        wasmtime_config_cranelift_opt_level_set(config, optLevel.ordinal.convert())
     }
 
-    fun setProfiler(profilingStrategy: wasmtime_profiling_strategy_t): Config = this.apply {
-        wasmtime_config_profiler_set(config, profilingStrategy)
+    fun setProfiler(profilingStrategy: ProfilingStrategy): Config = this.apply {
+        wasmtime_config_profiler_set(config, profilingStrategy.ordinal.convert())
     }
 
     fun setStaticMemoryMaximumSize(size: ULong): Config = this.apply {
@@ -101,5 +101,22 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
 
     override fun close() {
         wasm_config_delete(config)
+    }
+
+    enum class WasmtimeStrategy {
+        AUTO,
+        CRANELIFT
+    }
+
+    enum class OptLevel {
+        NONE,
+        SPEED,
+        SPEED_AND_SIZE
+    }
+
+    enum class ProfilingStrategy {
+        NONE,
+        JITDUMP,
+        VTUNE
     }
 }
