@@ -17,6 +17,7 @@ kotlin {
             useJUnitPlatform()
         }
     }
+
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTarget = when {
@@ -37,7 +38,7 @@ kotlin {
             }
         }
         binaries {
-            sharedLib {
+            staticLib {
                 baseName = "wasmtime_kt"
                 linkerOpts("-Lwasmtime-v7.0.0-aarch64-macos-c-api/lib", "-lwasmtime")
             }

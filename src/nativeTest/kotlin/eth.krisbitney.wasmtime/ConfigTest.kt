@@ -66,7 +66,7 @@ class ConfigTest {
                 .setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
                 .setDebugInfo(true)
             Engine(config).use { engine ->
-                Store<Nothing>(engine).use { store ->
+                Store(engine, false).use { store ->
                     store.engine
                 }
             }
