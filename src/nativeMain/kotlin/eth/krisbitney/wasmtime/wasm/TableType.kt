@@ -4,54 +4,64 @@ import kotlinx.cinterop.*
 import wasmtime.*
 
 /**
- * A Kotlin/Native wrapper for the `wasm_tabletype_t` struct, representing the type of a WebAssembly table.
+ * Represents the type of a WebAssembly table, containing information about the
+ * element type and the limits of the table.
  *
- * @property tableType The C pointer to the `wasm_tabletype_t` struct.
- * @constructor Creates a new [TableType] instance from the given C pointer.
- * @constructor Creates a new [TableType] instance with the specified element type, minimum, and maximum table limits.
+ * @property element The [ValType.Kind] describing the element type of the table.
+ * @property limits The [WasmLimits] describing the minimum and maximum size of the table.
+ *
+ * @constructor Constructs a new [TableType] instance from a C pointer to a `wasm_tabletype_t`.
+ * @param tableType The C pointer to the `wasm_tabletype_t`.
+ * @throws RuntimeException If the element type retrieval fails.
+ * @throws Error If the table type limits retrieval fails.
  */
-@OptIn(ExperimentalStdlibApi::class)
-class TableType(val tableType: CPointer<wasm_tabletype_t>) : AutoCloseable {
-
-    /**
-     * Creates a new [TableType] instance with the specified element type, minimum, and maximum table limits.
-     *
-     * @param elementType The element type of the table.
-     * @param min The minimum number of elements in the table.
-     * @param max The maximum number of elements in the table.
-     */
-    constructor(elementType: ValType.Kind, min: UInt = 0u, max: UInt = WasmLimits.LIMITS_MAX_DEFAULT) :
-            this(elementType.run {
-                val limits = WasmLimits.cLimits(min, max).ptr
-                val tableType = wasm_tabletype_new(ValType.allocateCValue(elementType), limits)
-                    ?: throw Error("failed to create table type")
-                nativeHeap.free(limits)
-                tableType
-            })
-
-    /**
-     * Retrieves the element type of the WebAssembly table as a [ValType.Kind].
-     *
-     * @return The element type of the table.
-     */
-    val element: ValType.Kind
-        get() {
-            val result = wasm_tabletype_element(tableType)  ?: throw RuntimeException("failed to get table type element")
-            return ValType.kindFromCValue(result)
-        }
-
-    /**
-     * Retrieves the limits of the WebAssembly table as a [WasmLimits] instance.
-     *
-     * @return The limits of the table.
-     */
+class TableType(
+    val element: ValType.Kind,
     val limits: WasmLimits
-        get() {
-            val ptr = wasm_tabletype_limits(tableType) ?: throw Error("failed to get table type limits")
-            return WasmLimits(ptr.pointed.min, ptr.pointed.max)
+) : ExternType(ExternType.Kind.TABLE) {
+
+    constructor(tableType: CPointer<wasm_tabletype_t>) : this(
+        wasm_tabletype_element(tableType)?.let {
+            ValType.kindFromCValue(it)
+        } ?: throw RuntimeException("failed to get table type element"),
+        wasm_tabletype_limits(tableType)?.let {
+            WasmLimits(it.pointed.min, it.pointed.max)
+        } ?: throw Error("failed to get table type limits")
+    ) {
+        wasm_tabletype_delete(tableType)
+    }
+
+    /**
+     * Companion object providing utility methods for working with C values and pointers
+     * related to the [TableType] class.
+     */
+    companion object {
+        /**
+         * Allocates a new C pointer for the given [TableType] and creates a `wasm_tabletype_t` instance.
+         *
+         * @param tableType The [TableType] to be used for creating the `wasm_tabletype_t`.
+         * @return The newly created C pointer to a `wasm_tabletype_t`.
+         * @throws Error If there is a failure to create the table type.
+         */
+        fun allocateCValue(tableType: TableType): CPointer<wasm_tabletype_t> {
+            val cElement = ValType.allocateCValue(tableType.element)
+            val cLimits = WasmLimits.allocateCValue(tableType.limits.min, tableType.limits.max).ptr
+            val cTableType = wasm_tabletype_new(cElement, cLimits)
+            nativeHeap.free(cLimits)
+            if (cTableType == null) {
+                nativeHeap.free(cElement)
+                throw Error("failed to create table type")
+            }
+            return cTableType
         }
 
-    override fun close() {
-        wasm_tabletype_delete(tableType)
+        /**
+         * Deletes the C value for the given `wasm_tabletype_t` pointer.
+         *
+         * @param tableType The C pointer to the `wasm_tabletype_t` to be deleted.
+         */
+        fun deleteCValue(tableType: CPointer<wasm_tabletype_t>) {
+            wasm_tabletype_delete(tableType)
+        }
     }
 }

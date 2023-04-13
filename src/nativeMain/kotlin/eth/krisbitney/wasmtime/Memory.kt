@@ -2,23 +2,23 @@ package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
 import platform.posix.size_t
-import eth.krisbitney.wasmtime.wasm.WasmLimits
 import eth.krisbitney.wasmtime.wasm.MemoryType
 import wasmtime.*
 
+/** Memory is owned by the Store, and does not need to be deleted by the user */
 @OptIn(ExperimentalStdlibApi::class)
 class Memory(
     private val store: CPointer<wasmtime_context_t>,
     val memory: CPointer<wasmtime_memory_t>
 ) : AutoCloseable {
 
-    constructor(store: Store<*>, min: UInt = 0u, max: UInt = WasmLimits.LIMITS_MAX_DEFAULT) :
+    constructor(store: Store<*>, memoryType: MemoryType) :
             this(
                 store.context.context,
                 nativeHeap.alloc<wasmtime_memory_t>().apply {
-                    val memoryType = MemoryType(min, max)
-                    val error = wasmtime_memory_new(store.context.context, memoryType.memoryType, this.ptr)
-                    memoryType.close()
+                    val cMemoryType = MemoryType.allocateCValue(memoryType)
+                    val error = wasmtime_memory_new(store.context.context, cMemoryType, this.ptr)
+                    MemoryType.deleteCValue(cMemoryType)
                     if (error != null) {
                         nativeHeap.free(this)
                         throw WasmtimeException(error)

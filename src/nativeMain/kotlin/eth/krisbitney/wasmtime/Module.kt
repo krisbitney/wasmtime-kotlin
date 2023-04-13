@@ -3,7 +3,7 @@ package eth.krisbitney.wasmtime
 import eth.krisbitney.wasmtime.wasm.ExportType
 import eth.krisbitney.wasmtime.wasm.ImportType
 import kotlinx.cinterop.*
-import toList
+import eth.krisbitney.wasmtime.util.toList
 import wasmtime.*
 
 @OptIn(ExperimentalStdlibApi::class, ExperimentalUnsignedTypes::class)

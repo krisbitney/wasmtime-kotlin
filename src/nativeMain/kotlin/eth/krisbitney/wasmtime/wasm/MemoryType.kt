@@ -4,43 +4,58 @@ import kotlinx.cinterop.*
 import wasmtime.*
 
 /**
- * A Kotlin/Native wrapper for the `wasm_memorytype_t` struct, representing the type of a WebAssembly memory.
+ * Represents a WebAssembly memory type.
  *
- * @property memoryType The C pointer to the `wasm_memorytype_t` struct.
+ * @property limits The memory limits associated with this memory type.
+ *
+ * @constructor Creates a new [MemoryType] instance with the given memory limits.
+ * @param limits The [WasmLimits] defining the memory limits.
+ *
  * @constructor Creates a new [MemoryType] instance from the given C pointer.
- * @constructor Creates a new [MemoryType] instance with the specified minimum and maximum memory limits.
+ * @param memoryType The C pointer to the `wasm_memorytype_t` struct.
+ * @throws Error If there is a failure to get memory limits from the underlying `wasm_memorytype_t`.
  */
-@OptIn(ExperimentalStdlibApi::class)
-class MemoryType(val memoryType: CPointer<wasm_memorytype_t>) : AutoCloseable {
+class MemoryType(val limits: WasmLimits) : ExternType(ExternType.Kind.MEMORY) {
 
-    /**
-     * Creates a new [MemoryType] instance with the specified minimum and maximum memory limits.
-     *
-     * @param min The minimum size of the memory in WebAssembly pages.
-     * @param max The maximum size of the memory in WebAssembly pages.
-     */
-    constructor(min: UInt = 0u, max: UInt = WasmLimits.LIMITS_MAX_DEFAULT) :
-            this(
-                min.run {
-                    val limits = WasmLimits.cLimits(min, max).ptr
-                    val memoryType = wasm_memorytype_new(WasmLimits.cLimits(min, max).ptr)
-                        ?: throw Error("failed to create memory type")
-                    nativeHeap.free(limits)
-                    memoryType
-                }
-            )
-
-    /**
-     * Retrieves the limits of the WebAssembly memory as a [WasmLimits] instance.
-     *
-     * @return The limits of the memory.
-     */
-    val limits: WasmLimits
-        get() {
-        val ptr = wasm_memorytype_limits(memoryType) ?: throw Error("failed to get memory limits")
-        return WasmLimits(ptr.pointed.min, ptr.pointed.max)
-    }
-    override fun close() {
+    constructor(memoryType: CPointer<wasm_memorytype_t>) : this(
+        memoryType.run {
+            val ptr = wasm_memorytype_limits(memoryType) ?: throw Error("failed to get memory limits")
+            WasmLimits(ptr.pointed.min, ptr.pointed.max)
+        }
+    ) {
         wasm_memorytype_delete(memoryType)
+    }
+
+    /**
+     * Companion object providing utility methods for working with C values and pointers
+     * related to the [MemoryType] class.
+     */
+    companion object {
+        /**
+         * Allocates a new C pointer for the given [MemoryType] and creates a `wasm_memorytype_t` instance.
+         *
+         * @param memoryType The [MemoryType] to be allocated.
+         * @return The newly created C pointer to a `wasm_memorytype_t`.
+         * @throws Error If there is a failure to create the memory type.
+         */
+        fun allocateCValue(memoryType: MemoryType): CPointer<wasm_memorytype_t> {
+            val limits = memoryType.limits
+            val cLimits = WasmLimits.allocateCValue(limits.min, limits.max)
+            val cMemoryType = wasm_memorytype_new(cLimits.ptr)
+            if (cMemoryType == null) {
+                nativeHeap.free(cLimits.ptr)
+                throw Error("failed to create memory type")
+            }
+            return cMemoryType
+        }
+
+        /**
+         * Deletes the C value for the given `wasm_memorytype_t` pointer.
+         *
+         * @param memoryType The C pointer to the `wasm_memorytype_t` to be deleted.
+         */
+        fun deleteCValue(memoryType: CPointer<wasm_memorytype_t>) {
+            wasm_memorytype_delete(memoryType)
+        }
     }
 }

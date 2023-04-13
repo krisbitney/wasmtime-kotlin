@@ -1,9 +1,7 @@
 package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
-import eth.krisbitney.wasmtime.wasm.WasmLimits
 import eth.krisbitney.wasmtime.wasm.TableType
-import eth.krisbitney.wasmtime.wasm.ValType
 import wasmtime.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -15,15 +13,13 @@ class Table(
     constructor(
         store: Store<*>,
         init: Val,
-        elementType: ValType.Kind,
-        min: UInt = 0u,
-        max: UInt = WasmLimits.LIMITS_MAX_DEFAULT,
+        tableType: TableType
     ): this(store.context.context,
         nativeHeap.alloc<wasmtime_table_t>().apply {
-            val tableType = TableType(elementType, min, max)
+            val cTableType = TableType.allocateCValue(tableType)
             val wasmtimeVal = Val.allocateCValue(init)
-            val error = wasmtime_table_new(store.context.context, tableType.tableType, wasmtimeVal, this.ptr)
-            tableType.close()
+            val error = wasmtime_table_new(store.context.context, cTableType, wasmtimeVal, this.ptr)
+            TableType.deleteCValue(cTableType)
             Val.deleteCValue(wasmtimeVal)
             error?.let {
                 nativeHeap.free(this)

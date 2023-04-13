@@ -31,7 +31,7 @@ class ExportType(val name: String, val type: ExternType) {
         },
         exportType.let {
             val externTypePtr = wasm_exporttype_type(exportType) ?: throw Error("Failed to get export type")
-            ExternType(externTypePtr)
+            ExternType.fromCValue(externTypePtr)
         }
     ) {
         wasm_exporttype_delete(exportType)

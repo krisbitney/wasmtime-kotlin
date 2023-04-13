@@ -3,49 +3,62 @@ package eth.krisbitney.wasmtime.wasm
 import kotlinx.cinterop.*
 import wasmtime.*
 
+
 /**
- * Represents a global type in WebAssembly.
+ * Represents the type of a WebAssembly global variable, containing information about the
+ * content type and mutability of the global variable.
  *
- * @property globalType The C pointer to the `wasm_globaltype_t` struct.
+ * @property content The [ValType.Kind] describing the content type of the global variable.
+ * @property mutability The [Mutability] describing whether the global variable is mutable or immutable.
  *
- * @constructor Creates a new [GlobalType] instance with the given content type and mutability.
- * @param content The [ValType.Kind] representing the content type of the global.
- * @param mutability The [Mutability] indicating whether the global is mutable or not.
- *
- * @throws Error If there is a failure to create the global type.
+ * @constructor Constructs a new [GlobalType] instance from a C pointer to a `wasm_globaltype_t`.
+ * @param globalType The C pointer to the `wasm_globaltype_t`.
+ * @throws RuntimeException If the content type or mutability retrieval fails.
  */
-@OptIn(ExperimentalStdlibApi::class)
-class GlobalType(val globalType: CPointer<wasm_globaltype_t>) : AutoCloseable {
-
-    /**
-     * Creates a new [GlobalType] instance from the given content type and mutability.
-     *
-     * @param content The [ValType.Kind] representing the content type of the global.
-     * @param mutability The [Mutability] indicating whether the global is mutable or not.
-     */
-    constructor(content: ValType.Kind, mutability: Mutability) :
-            this(wasm_globaltype_new(ValType.allocateCValue(content), mutability.wasmMutability)
-                ?: throw Error("failed to create global type"))
-
-    /**
-     * The content type of the global, represented as a [ValType.Kind].
-     */
-    val content: ValType.Kind
-        get() {
-            val result = wasm_globaltype_content(globalType)  ?: throw RuntimeException("Unable to get globaltype content")
-            return ValType.kindFromCValue(result)
-        }
-
-    /**
-     * The mutability of the global, represented as a [Mutability] instance.
-     */
+class GlobalType(
+    val content: ValType.Kind,
     val mutability: Mutability
-        get() {
+) : ExternType(ExternType.Kind.GLOBAL) {
+
+    constructor(globalType: CPointer<wasm_globaltype_t>) : this(
+        globalType.let {
+            val result = wasm_globaltype_content(globalType)  ?: throw RuntimeException("Unable to get globaltype content")
+            ValType.kindFromCValue(result)
+        },
+        globalType.let {
             val result = wasm_globaltype_mutability(globalType)
-            return Mutability.fromValue(result) ?: throw RuntimeException("Unable to get globaltype mutability")
+            Mutability.fromValue(result) ?: throw RuntimeException("Unable to get globaltype mutability")
+        }
+    ) {
+        wasm_globaltype_delete(globalType)
+    }
+
+    /**
+     * Companion object providing utility methods for working with C values and pointers
+     * related to the [GlobalType] class.
+     */
+    companion object {
+        /**
+         * Allocates a new C pointer for the given [GlobalType] and creates a `wasm_globaltype_t` instance.
+         *
+         * @param globalType The [GlobalType] to be used for creating the `wasm_globaltype_t`.
+         * @return The newly created C pointer to a `wasm_globaltype_t`.
+         * @throws Error If there is a failure to create the global type.
+         */
+        fun allocateCValue(globalType: GlobalType): CPointer<wasm_globaltype_t> {
+            val content = globalType.content
+            val mutability = globalType.mutability
+            return wasm_globaltype_new(ValType.allocateCValue(content), mutability.wasmMutability)
+                ?: throw Error("failed to create global type")
         }
 
-    override fun close() {
-        nativeHeap.free(globalType)
+        /**
+         * Deletes the C value for the given `wasm_globaltype_t` pointer.
+         *
+         * @param globalType The C pointer to the `wasm_globaltype_t` to be deleted.
+         */
+        fun deleteCValue(globalType: CPointer<wasm_globaltype_t>) {
+            wasm_globaltype_delete(globalType)
+        }
     }
 }

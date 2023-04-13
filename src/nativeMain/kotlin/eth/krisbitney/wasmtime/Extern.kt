@@ -41,7 +41,7 @@ class Extern(
 
     fun type(): ExternType {
         val ptr = wasmtime_extern_type(store, extern) ?: throw Error("failed to get extern type")
-        return ExternType(ptr)
+        return ExternType.fromCValue(ptr)
     }
 
     override fun close() {

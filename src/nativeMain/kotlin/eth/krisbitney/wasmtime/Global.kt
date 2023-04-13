@@ -2,8 +2,6 @@ package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
 import eth.krisbitney.wasmtime.wasm.GlobalType
-import eth.krisbitney.wasmtime.wasm.Mutability
-import eth.krisbitney.wasmtime.wasm.ValType
 import wasmtime.*
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -14,24 +12,20 @@ class Global(
 
     constructor(
         store: Store<*>,
-        kind: ValType.Kind,
-        mutability: Mutability,
+        globalType: GlobalType,
         value: Val
     ): this(
         store.context.context,
         nativeHeap.alloc<wasmtime_global_t>().apply {
-            val globalType = GlobalType(
-                kind,
-                mutability
-            )
+            val cGlobalType = GlobalType.allocateCValue(globalType)
             val wasmtimeVal = Val.allocateCValue(value)
             val error = wasmtime_global_new(
                 store.context.context,
-                globalType.globalType,
+                cGlobalType,
                 wasmtimeVal,
                 this.ptr
             )
-            globalType.close()
+            GlobalType.deleteCValue(cGlobalType)
             Val.deleteCValue(wasmtimeVal)
 
             if (error != null) {

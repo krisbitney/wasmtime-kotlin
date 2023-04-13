@@ -38,7 +38,7 @@ class ImportType(
                        },
         importType.let {
             val externTypePtr = wasm_importtype_type(importType) ?: throw Error("Failed to get import type")
-            ExternType(externTypePtr)
+            ExternType.fromCValue(externTypePtr)
         }
     ) {
         wasm_importtype_delete(importType)

@@ -2,19 +2,19 @@ package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
 import platform.posix.size_t
-import toList
+import eth.krisbitney.wasmtime.util.toList
 import eth.krisbitney.wasmtime.wasm.FuncType
-import eth.krisbitney.wasmtime.wasm.ValType
 import platform.posix.memcpy
 import wasmtime.*
 
-typealias FuncCallback = (caller: eth.krisbitney.wasmtime.Caller, args: List<Val>) -> Result<List<Val>>
+typealias FuncCallback = (caller: Caller, args: List<Val>) -> Result<List<Val>>
 
 /** Func is owned by the Store, and does not need to be deleted by the user */
+@OptIn(ExperimentalStdlibApi::class)
 class Func(
     val store: CPointer<wasmtime_context_t>,
     val func: CPointer<wasmtime_func_t>
-) {
+) : AutoCloseable {
 
     constructor(
         store: Store<*>,
@@ -23,6 +23,7 @@ class Func(
     ) : this(
         store.context.context,
         nativeHeap.alloc<wasmtime_func_t>().apply {
+            val cFuncType = FuncType.allocateCValue(type)
             val stableRef = StableRef.create(callback)
             val cCallback: wasmtime_func_callback_t = staticCFunction(::cFuncCallback)
             val envFinalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>> = staticCFunction { ptr: COpaquePointer? ->
@@ -30,12 +31,14 @@ class Func(
             }
             wasmtime_func_new(
                 store.context.context,
-                type.funcType,
+                cFuncType,
                 cCallback,
                 stableRef.asCPointer(),
                 envFinalizer,
                 this.ptr
             )
+            FuncType.deleteCValue(cFuncType)
+            stableRef.dispose()
         }.ptr
     )
 
@@ -46,8 +49,8 @@ class Func(
 
     fun call(args: List<Val>? = null): List<Val> = memScoped {
         val funcType = type()
-        val paramTypes = funcType.params()
-        val resultTypes = funcType.results()
+        val paramTypes = funcType.params
+        val resultTypes = funcType.results
 
         val argsSize = args?.size ?: 0
         require((argsSize) == paramTypes.size) {
@@ -93,6 +96,10 @@ class Func(
 
     fun toRaw(): size_t {
         return wasmtime_func_to_raw(store, func)
+    }
+
+    override fun close() {
+        nativeHeap.free(func)
     }
 }
 

@@ -29,7 +29,7 @@ data class WasmLimits(val min: UInt = 0u, val max: UInt = LIMITS_MAX_DEFAULT) {
          * @param max The maximum value required, or [LIMITS_MAX_DEFAULT] if no maximum is specified.
          * @return A [wasm_limits_t] instance with the specified minimum and maximum values.
          */
-        fun cLimits(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): wasm_limits_t {
+        fun allocateCValue(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): wasm_limits_t {
             return cValue<wasm_limits_t> {
                 this.min = min
                 this.max = max

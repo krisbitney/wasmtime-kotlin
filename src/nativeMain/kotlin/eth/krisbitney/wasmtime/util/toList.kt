@@ -1,3 +1,5 @@
+package eth.krisbitney.wasmtime.util
+
 import eth.krisbitney.wasmtime.Val
 import kotlinx.cinterop.*
 import eth.krisbitney.wasmtime.wasm.ExportType
@@ -5,7 +7,7 @@ import wasmtime.*
 import eth.krisbitney.wasmtime.wasm.ImportType
 import eth.krisbitney.wasmtime.wasm.ValType
 
-fun CValue<wasm_importtype_vec_t>.toList(): List<ImportType> {
+internal fun CValue<wasm_importtype_vec_t>.toList(): List<ImportType> {
     return this.useContents {
         val list = mutableListOf<ImportType>()
 
@@ -19,7 +21,7 @@ fun CValue<wasm_importtype_vec_t>.toList(): List<ImportType> {
     }
 }
 
-fun CValue<wasm_exporttype_vec_t>.toList(): List<ExportType> {
+internal fun CValue<wasm_exporttype_vec_t>.toList(): List<ExportType> {
     return this.useContents {
         val list = mutableListOf<ExportType>()
 
@@ -33,7 +35,7 @@ fun CValue<wasm_exporttype_vec_t>.toList(): List<ExportType> {
     }
 }
 
-fun CPointer<wasm_valtype_vec_t>.toList(): List<ValType<*>> {
+internal fun CPointer<wasm_valtype_vec_t>.toList(): List<ValType<*>> {
     val size = this.pointed.size.toInt()
     val list = mutableListOf<ValType<*>>()
 
@@ -46,6 +48,6 @@ fun CPointer<wasm_valtype_vec_t>.toList(): List<ValType<*>> {
     return list
 }
 
-fun CArrayPointer<wasmtime_val_t>.toList(size: Int): List<Val> {
+internal fun CArrayPointer<wasmtime_val_t>.toList(size: Int): List<Val> {
     return (0 until size).map { Val.fromCValue(this[it].ptr) }
 }

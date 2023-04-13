@@ -40,6 +40,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         data: T? = null,
         finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
     ) {
+        val cFuncType = FuncType.allocateCValue(funcType)
         val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
         val error = wasmtime_linker_define_func(
             linker,
@@ -47,13 +48,14 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             module.length.convert(),
             name,
             name.length.convert(),
-            funcType.funcType,
+            cFuncType,
             callback,
             dataPtr,
             finalizer
         )
+        FuncType.deleteCValue(cFuncType)
+        dataPtr?.asStableRef<Any>()?.dispose()
         if (error != null) {
-            dataPtr?.asStableRef<Any>()?.dispose()
             throw WasmtimeException(error)
         }
     }
@@ -66,6 +68,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         data: T? = null,
         finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
     ) {
+        val cFuncType = FuncType.allocateCValue(funcType)
         val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
         val error = wasmtime_linker_define_func_unchecked(
             linker,
@@ -73,13 +76,14 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             module.length.convert(),
             name,
             name.length.convert(),
-            funcType.funcType,
+            cFuncType,
             callback,
             dataPtr,
             finalizer
         )
+        FuncType.deleteCValue(cFuncType)
+        dataPtr?.asStableRef<Any>()?.dispose()
         if (error != null) {
-            dataPtr?.asStableRef<Any>()?.dispose()
             throw WasmtimeException(error)
         }
     }
