@@ -6,7 +6,7 @@ import eth.krisbitney.wasmtime.wasm.*
 class FuncFactory {
 
     fun <T, R0: Any> wrap(store: Store<T>, r0: ValType<R0>, func: Function0<R0>): Func {
-        val funcType = Func.wasmFunctype(null, arrayOf(r0))
+        val funcType = FuncType(null, arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching { func.call() }
             if (result.isSuccess) {
@@ -19,7 +19,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, R0: Any> wrap(store: Store<T>, a0: ValType<A0>, r0: ValType<R0>, func: Function1<A0, R0>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching { func.call(a0.fromVal(params[0])) }
             if (result.isSuccess) {
@@ -38,7 +38,7 @@ class FuncFactory {
         r0: ValType<R0>,
         func: Function2<A0, A1, R0>
     ): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0, a1), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.call(
@@ -63,7 +63,7 @@ class FuncFactory {
         r0: ValType<R0>,
         func: Function3<A0, A1, A2, R0>
     ): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0, a1, a2), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.call(
@@ -90,7 +90,7 @@ class FuncFactory {
         r0: ValType<R0>,
         func: Function4<A0, A1, A2, A3, R0>
     ): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.call(
@@ -119,7 +119,7 @@ class FuncFactory {
         r0: ValType<R0>,
         func: Function5<A0, A1, A2, A3, A4, R0>
     ): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3, a4), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.call(
@@ -150,7 +150,7 @@ class FuncFactory {
         r0: ValType<R0>,
         func: Function6<A0, A1, A2, A3, A4, A5, R0>
     ): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4, a5), arrayOf(r0))
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3, a4, a5), arrayOf(r0))
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.call(
@@ -172,7 +172,7 @@ class FuncFactory {
     }
 
     fun <T>wrap(store: Store<T>, func: Consumer0): Func {
-        val funcType = Func.wasmFunctype(null, null)
+        val funcType = FuncType(null, null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching { func.accept() }
             if (result.isSuccess) {
@@ -184,7 +184,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any> wrap(store: Store<T>, a0: ValType<A0>, func: Consumer1<A0>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0), null)
+        val funcType = FuncType(arrayOf(a0), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching { func.accept(a0.fromVal(params[0])) }
             if (result.isSuccess) {
@@ -196,7 +196,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, A1: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>, func: Consumer2<A0, A1>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1), null)
+        val funcType = FuncType(arrayOf(a0, a1), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.accept(
@@ -213,7 +213,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, A1: Any, A2: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, func: Consumer3<A0, A1, A2>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2), null)
+        val funcType = FuncType(arrayOf(a0, a1, a2), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.accept(
@@ -231,7 +231,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, A1: Any, A2: Any, A3: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, func: Consumer4<A0, A1, A2, A3>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3), null)
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.accept(
@@ -250,7 +250,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, a4: ValType<A4>, func: Consumer5<A0, A1, A2, A3, A4>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4), null)
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3, a4), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.accept(
@@ -270,7 +270,7 @@ class FuncFactory {
     }
 
     fun <T, A0: Any, A1: Any, A2: Any, A3: Any, A4: Any, A5: Any> wrap(store: Store<T>, a0: ValType<A0>, a1: ValType<A1>,a2: ValType<A2>, a3: ValType<A3>, a4: ValType<A4>, a5: ValType<A5>, func: Consumer6<A0, A1, A2, A3, A4, A5>): Func {
-        val funcType = Func.wasmFunctype(arrayOf(a0, a1, a2, a3, a4, a5), null)
+        val funcType = FuncType(arrayOf(a0, a1, a2, a3, a4, a5), null)
         return Func(store, funcType) { caller, params ->
             val result = runCatching {
                 func.accept(

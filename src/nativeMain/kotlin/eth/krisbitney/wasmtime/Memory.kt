@@ -20,7 +20,6 @@ class Memory(
                     val error = wasmtime_memory_new(store.context.context, memoryType.memoryType, this.ptr)
                     memoryType.close()
                     if (error != null) {
-                        memoryType.close()
                         nativeHeap.free(this)
                         throw WasmtimeException(error)
                     }

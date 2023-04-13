@@ -1,6 +1,5 @@
 package eth.krisbitney.wasmtime
 
-import eth.krisbitney.wasmtime.wasm.ExternKind
 import eth.krisbitney.wasmtime.wasm.ExternType
 import kotlinx.cinterop.*
 import wasmtime.wasmtime_context_t
@@ -14,29 +13,29 @@ class Extern(
     val extern: CPointer<wasmtime_extern_t>
 ) : AutoCloseable {
 
-    val kind: ExternKind = ExternKind.fromValue(extern.pointed.kind)
+    val kind: ExternType.Kind = ExternType.Kind.fromValue(extern.pointed.kind)
 
     val func: Func
         get() {
-            require(kind == ExternKind.FUNC) { "Extern is not a function" }
+            require(kind == ExternType.Kind.FUNC) { "Extern is not a function" }
             return Func(store, extern.pointed.of.func.ptr)
         }
 
     val global: Global
         get() {
-            require(kind == ExternKind.GLOBAL) { "Extern is not a global" }
+            require(kind == ExternType.Kind.GLOBAL) { "Extern is not a global" }
             return Global(store, extern.pointed.of.global.ptr)
         }
 
     val table: Table
         get() {
-            require(kind == ExternKind.TABLE) { "Extern is not a table" }
+            require(kind == ExternType.Kind.TABLE) { "Extern is not a table" }
             return Table(store, extern.pointed.of.table.ptr)
         }
 
     val memory: Memory
         get() {
-            require(kind == ExternKind.MEMORY) { "Extern is not a memory" }
+            require(kind == ExternType.Kind.MEMORY) { "Extern is not a memory" }
             return Memory(store, extern.pointed.of.memory.ptr)
         }
 

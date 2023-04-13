@@ -2,7 +2,7 @@ package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
 import eth.krisbitney.wasmtime.wasm.GlobalType
-import eth.krisbitney.wasmtime.wasm.WasmMutability
+import eth.krisbitney.wasmtime.wasm.Mutability
 import eth.krisbitney.wasmtime.wasm.ValType
 import wasmtime.*
 
@@ -15,7 +15,7 @@ class Global(
     constructor(
         store: Store<*>,
         kind: ValType.Kind,
-        mutability: WasmMutability,
+        mutability: Mutability,
         value: Val
     ): this(
         store.context.context,

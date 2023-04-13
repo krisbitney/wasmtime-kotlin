@@ -3,27 +3,32 @@ package eth.krisbitney.wasmtime.wasm
 import kotlinx.cinterop.*
 import wasmtime.*
 
-// TODO: make memory safe like error types
-@OptIn(ExperimentalStdlibApi::class)
-class WasmFrame(val frame: CPointer<wasm_frame_t>) : AutoCloseable {
-    fun copy(): WasmFrame {
-        val newFrame = wasm_frame_copy(frame) ?: throw RuntimeException("Failed to copy wasm_frame_t")
-        return WasmFrame(newFrame)
-    }
-
-    val instance // : CPointer<wasm_instance_t>?
-        get() = wasm_frame_instance(frame)
-
-    val funcIndex: UInt
-        get() = wasm_frame_func_index(frame)
-
-    val funcOffset: ULong
-        get() = wasm_frame_func_offset(frame)
-
-    val moduleOffset: ULong
-        get() = wasm_frame_module_offset(frame)
-
-    override fun close() {
+/**
+ * Represents a frame of a WebAssembly stack trace.
+ *
+ * @property funcIndex The function index in the original WebAssembly module that this frame corresponds to.
+ * @property funcOffset The byte offset from the beginning of the function in the original WebAssembly file to the instruction this frame points to.
+ * @property moduleOffset The byte offset from the beginning of the original WebAssembly file to the instruction this frame points to.
+ * @property funcName The name of the function this frame corresponds to, if available.
+ * @property moduleName The name of the module this frame corresponds to, if available.
+ *
+ * @constructor Constructs a new [WasmFrame] from the given [wasm_frame_t] pointer.
+ * @param frame The C pointer to a [wasm_frame_t] struct.
+ */
+class WasmFrame(
+    val funcIndex: UInt,
+    val funcOffset: ULong,
+    val moduleOffset: ULong,
+    val funcName: String? = null,
+    val moduleName: String? = null
+    ) {
+    constructor(frame: CPointer<wasm_frame_t>) : this(
+        wasm_frame_func_index(frame),
+        wasm_frame_func_offset(frame),
+        wasm_frame_module_offset(frame),
+        wasmtime_frame_func_name(frame)?.let { it.pointed.data?.toKString() },
+        wasmtime_frame_module_name(frame)?.let { it.pointed.data?.toKString() }
+    ) {
         wasm_frame_delete(frame)
     }
 }

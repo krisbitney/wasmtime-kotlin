@@ -26,7 +26,6 @@ class Table(
             tableType.close()
             Val.deleteCValue(wasmtimeVal)
             error?.let {
-                tableType.close()
                 nativeHeap.free(this)
                 throw WasmtimeException(it)
             }

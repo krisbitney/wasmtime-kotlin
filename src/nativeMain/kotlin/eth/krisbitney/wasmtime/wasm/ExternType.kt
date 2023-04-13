@@ -6,28 +6,60 @@ import wasmtime.*
 @OptIn(ExperimentalStdlibApi::class)
 class ExternType(val externType: CPointer<wasm_externtype_t>) : AutoCloseable {
 
-    val kind: ExternKind = ExternKind.fromValue(wasm_externtype_kind(externType))
+    constructor(funcType: FuncType) : this(
+        funcType.let {
+            val externTypePtr = wasm_functype_as_externtype(it.funcType)
+                ?: throw Error("failed to get extern type from func type")
+            externTypePtr
+        }
+    )
+
+    constructor(globalType: GlobalType) : this(
+        globalType.let {
+            val externTypePtr = wasm_globaltype_as_externtype(it.globalType)
+                ?: throw Error("failed to get extern type from global type")
+            externTypePtr
+        }
+    )
+
+    constructor(tableType: TableType) : this(
+        tableType.let {
+            val externTypePtr = wasm_tabletype_as_externtype(it.tableType)
+                ?: throw Error("failed to get extern type from table type")
+            externTypePtr
+        }
+    )
+
+    constructor(memoryType: MemoryType) : this(
+        memoryType.let {
+            val externTypePtr = wasm_memorytype_as_externtype(it.memoryType)
+                ?: throw Error("failed to get extern type from memory type")
+            externTypePtr
+        }
+    )
+
+    val kind: Kind = Kind.fromValue(wasm_externtype_kind(externType))
 
     fun toFuncType(): FuncType {
-        require(kind == ExternKind.FUNC) { "Extern is not a function" }
+        require(kind == Kind.FUNC) { "Extern is not a function" }
         val funcTypePtr = wasm_externtype_as_functype(externType)!!
         return FuncType(funcTypePtr)
     }
 
     fun toGlobalType(): GlobalType {
-        require(kind == ExternKind.GLOBAL) { "Extern is not a global" }
+        require(kind == Kind.GLOBAL) { "Extern is not a global" }
         val globalTypePtr = wasm_externtype_as_globaltype(externType)!!
         return GlobalType(globalTypePtr)
     }
 
     fun toTableType(): TableType {
-        require(kind == ExternKind.TABLE) { "Extern is not a table" }
+        require(kind == Kind.TABLE) { "Extern is not a table" }
         val tableTypePtr = wasm_externtype_as_tabletype(externType)!!
         return TableType(tableTypePtr)
     }
 
     fun toMemoryType(): MemoryType {
-        require(kind == ExternKind.MEMORY) { "Extern is not a memory" }
+        require(kind == Kind.MEMORY) { "Extern is not a memory" }
         val memoryTypePtr = wasm_externtype_as_memorytype(externType)!!
         return MemoryType(memoryTypePtr)
     }
@@ -36,29 +68,16 @@ class ExternType(val externType: CPointer<wasm_externtype_t>) : AutoCloseable {
         wasm_externtype_delete(externType)
     }
 
-    companion object {
-        fun fromWasmFuncType(funcType: FuncType): ExternType {
-            val externTypePtr = wasm_functype_as_externtype(funcType.funcType)
-                ?: throw Error("failed to get extern type from func type")
-            return ExternType(externTypePtr)
-        }
+    enum class Kind(val value: wasm_externkind_t) {
+        FUNC(wasm_externkind_enum.WASM_EXTERN_FUNC.value.toUByte()),
+        GLOBAL(wasm_externkind_enum.WASM_EXTERN_GLOBAL.value.toUByte()),
+        TABLE(wasm_externkind_enum.WASM_EXTERN_TABLE.value.toUByte()),
+        MEMORY(wasm_externkind_enum.WASM_EXTERN_MEMORY.value.toUByte());
 
-        fun fromWasmGlobalType(globalType: GlobalType): ExternType {
-            val externTypePtr = wasm_globaltype_as_externtype(globalType.globalType)
-                ?: throw Error("failed to get extern type from global type")
-            return ExternType(externTypePtr)
-        }
-
-        fun fromWasmTableType(tableType: TableType): ExternType {
-            val externTypePtr = wasm_tabletype_as_externtype(tableType.tableType)
-                ?: throw Error("failed to get extern type from table type")
-            return ExternType(externTypePtr)
-        }
-
-        fun fromWasmMemoryType(memoryType: MemoryType): ExternType {
-            val externTypePtr = wasm_memorytype_as_externtype(memoryType.memoryType)
-                ?: throw Error("failed to get extern type from memory type")
-            return ExternType(externTypePtr)
+        companion object {
+            fun fromValue(value: wasm_externkind_t): Kind {
+                return values().find { it.value == value }  ?: throw IllegalArgumentException("Invalid ExternKind value: $value")
+            }
         }
     }
 }
