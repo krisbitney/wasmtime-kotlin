@@ -64,11 +64,11 @@ class ConfigTest {
     @Ignore
     @Test
     fun testCustomConfig() {
-        val config = Config()
-            .setStrategy(Config.WasmtimeStrategy.CRANELIFT)
-            .setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
-            .setDebugInfo(true)
-        val engine = Engine(config)
+        val engine = Engine {
+            setStrategy(Config.WasmtimeStrategy.CRANELIFT)
+            setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
+            setDebugInfo(true)
+        }
         val store = Store(engine, false)
         store.close()
         engine.close()

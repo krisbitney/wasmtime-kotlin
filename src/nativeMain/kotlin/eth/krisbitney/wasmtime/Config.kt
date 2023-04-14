@@ -7,8 +7,7 @@ import wasmtime.*
 /**
  * Represents a configuration for a Wasmtime instance. Wraps the native `wasm_config_t` structure.
  * This class provides methods for configuring various settings and features of Wasmtime.
- * Once passed into an [Engine] instance, the [Config] instance is owned by the [Engine] and
- * will be freed when the [Engine] is closed.
+ * This class should not be instantiated directly. Instead, use Config builder constructor in [Engine].
  *
  * @property config A pointer to the native `wasm_config_t` structure.
  * @constructor Creates a new instance of [Config] by allocating a new `wasm_config_t` structure.
