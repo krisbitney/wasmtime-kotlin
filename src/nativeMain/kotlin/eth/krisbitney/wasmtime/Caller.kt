@@ -6,10 +6,11 @@ import wasmtime.*
 /** never owned; does not need to be deleted */
 class Caller(val caller: CPointer<wasmtime_caller_t>) {
 
-    val context: Context<Any?> = Context(
-        wasmtime_caller_context(caller)
-            ?: throw Exception("failed to get caller context")
-    )
+    val context: Context<Any?>
+        get() {
+            val ptr = wasmtime_caller_context(caller) ?: throw Exception("failed to get caller context")
+            return Context(ptr)
+        }
 
     /** The returned Extern is owned by the caller */
     fun exportGet(name: String): Extern? = memScoped {

@@ -10,6 +10,11 @@ class Global(
     val global: CPointer<wasmtime_global_t>
 ) : Extern(store, Extern.Kind.GLOBAL), AutoCloseable {
 
+    val type: GlobalType by lazy {
+        val ptr = wasmtime_global_type(store, global) ?: throw Exception("Failed to get global type")
+        GlobalType(ptr)
+    }
+
     constructor(
         store: Store<*>,
         globalType: GlobalType,
@@ -34,11 +39,6 @@ class Global(
             }
         }.ptr
     )
-
-    fun type(): GlobalType {
-        val ptr = wasmtime_global_type(store, global) ?: throw Exception("Failed to get global type")
-        return GlobalType(ptr)
-    }
 
     fun get(): Val {
         val valuePtr = nativeHeap.alloc<wasmtime_val_t>()

@@ -22,32 +22,38 @@ class Trap(private val trap: CPointer<wasm_trap_t>) : Throwable() {
 
     constructor(message: String) : this(wasmtime_trap_new(message, message.length.convert()) ?: throw Error("failed to create trap"))
 
-    override val message = memScoped {
-        val msg = alloc<wasm_message_t>()
-        wasm_trap_message(trap, msg.ptr)
-        msg.data?.toKString() + " (code: ${trapCode?.name})"
-    }
-
-    val trapCode: TrapCode? = memScoped {
-        val code = alloc<wasmtime_trap_code_tVar>()
-        if (wasmtime_trap_code(trap, code.ptr)) {
-            TrapCode.fromValue(code.value)
-        } else {
-            null
+    override val message by lazy {
+        memScoped {
+            val msg = alloc<wasm_message_t>()
+            wasm_trap_message(trap, msg.ptr)
+            msg.data?.toKString() + " (code: ${trapCode?.name})"
         }
     }
 
-    val wasmTrace: List<WasmFrame> = memScoped {
-        val frameVec = alloc<wasm_frame_vec_t>()
-        wasm_trap_trace(trap, frameVec.ptr)
-
-        val frames = List(frameVec.size.toInt()) { index ->
-            WasmFrame(frameVec.data?.get(index)!!)
+    val trapCode: TrapCode? by lazy {
+        memScoped {
+            val code = alloc<wasmtime_trap_code_tVar>()
+            if (wasmtime_trap_code(trap, code.ptr)) {
+                TrapCode.fromValue(code.value)
+            } else {
+                null
+            }
         }
+    }
 
-        wasm_frame_vec_delete(frameVec.ptr)
+    val wasmTrace: List<WasmFrame> by lazy {
+        memScoped {
+            val frameVec = alloc<wasm_frame_vec_t>()
+            wasm_trap_trace(trap, frameVec.ptr)
 
-        frames
+            val frames = List(frameVec.size.toInt()) { index ->
+                WasmFrame(frameVec.data?.get(index)!!)
+            }
+
+            wasm_frame_vec_delete(frameVec.ptr)
+
+            frames
+        }
     }
 
     init {

@@ -10,6 +10,13 @@ class Table(
     val table: CPointer<wasmtime_table_t>,
 ) : Extern(store, Extern.Kind.TABLE), AutoCloseable {
 
+    val type: TableType by lazy {
+        val ptr = wasmtime_table_type(store, table) ?: throw Error("failed to get table type")
+        TableType(ptr)
+    }
+
+    val size: UInt get() = wasmtime_table_size(store, table)
+
     constructor(
         store: Store<*>,
         init: Val,
@@ -28,8 +35,6 @@ class Table(
         }.ptr
     )
 
-    val type: TableType get() = TableType(wasmtime_table_type(store, table) ?: throw Error("failed to get table type"))
-
     fun get(index: UInt): Val? = memScoped {
         val wasmtimeVal = alloc<wasmtime_val_t>()
         val success = wasmtime_table_get(store, table, index, wasmtimeVal.ptr)
@@ -46,8 +51,6 @@ class Table(
         Val.deleteCValue(wasmtimeVal)
         error?.let { throw WasmtimeException(it) }
     }
-
-    val size: UInt get() = wasmtime_table_size(store, table)
 
     fun grow(delta: UInt, init: wasmtime_val_t): UInt = memScoped {
         val prevSize = alloc<UIntVar>()

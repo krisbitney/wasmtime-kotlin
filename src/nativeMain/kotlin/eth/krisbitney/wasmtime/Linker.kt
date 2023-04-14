@@ -62,34 +62,6 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         }
     }
 
-//    fun <T: Any>defineFuncUnchecked(
-//        module: String,
-//        name: String,
-//        funcType: FuncType,
-//        callback: wasmtime_func_unchecked_callback_t? = null,
-//        data: T? = null,
-//        finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
-//    ): Linker = this.apply {
-//        val cFuncType = FuncType.allocateCValue(funcType)
-//        val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
-//        val error = wasmtime_linker_define_func_unchecked(
-//            linker,
-//            module,
-//            module.length.convert(),
-//            name,
-//            name.length.convert(),
-//            cFuncType,
-//            callback,
-//            dataPtr,
-//            finalizer
-//        )
-//        FuncType.deleteCValue(cFuncType)
-//        dataPtr?.asStableRef<Any>()?.dispose()
-//        if (error != null) {
-//            throw WasmtimeException(error)
-//        }
-//    }
-
     fun defineWasi(): Linker = this.apply {
         val error = wasmtime_linker_define_wasi(linker)
         if (error != null) throw WasmtimeException(error)

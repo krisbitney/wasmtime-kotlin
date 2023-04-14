@@ -9,12 +9,16 @@ import wasmtime.*
 
 typealias FuncCallback = (caller: Caller, args: List<Val>) -> Result<List<Val>>
 
-/** Func is owned by the Store, and does not need to be deleted by the user */
 @OptIn(ExperimentalStdlibApi::class)
 class Func(
     store: CPointer<wasmtime_context_t>,
     val func: CPointer<wasmtime_func_t>
 ) : Extern(store, Extern.Kind.FUNC), AutoCloseable {
+
+    val type: FuncType by lazy {
+        val ptr = wasmtime_func_type(store, func) ?: throw Error("failed to get function type")
+        FuncType(ptr)
+    }
 
     constructor(
         store: Store<*>,
@@ -42,15 +46,9 @@ class Func(
         }.ptr
     )
 
-    fun type(): FuncType {
-        val ptr = wasmtime_func_type(store, func) ?: throw Error("failed to get function type")
-        return FuncType(ptr)
-    }
-
     fun call(args: List<Val>? = null): List<Val> = memScoped {
-        val funcType = type()
-        val paramTypes = funcType.params
-        val resultTypes = funcType.results
+        val paramTypes = type.params
+        val resultTypes = type.results
 
         val argsSize = args?.size ?: 0
         require((argsSize) == paramTypes.size) {
