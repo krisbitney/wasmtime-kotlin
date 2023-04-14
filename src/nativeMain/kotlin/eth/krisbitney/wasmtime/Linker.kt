@@ -156,8 +156,8 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         store: Store<*>,
         module: String,
         name: String
-    ): Extern? {
-        val item = nativeHeap.alloc<wasmtime_extern_t>()
+    ): Extern? = memScoped {
+        val item = alloc<wasmtime_extern_t>()
         val found = wasmtime_linker_get(
             linker,
             store.context.context,
@@ -168,11 +168,8 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             item.ptr
         )
         return if (found) {
-            val extern = Extern.fromCValue(store.context.context, item.ptr)
-            Extern.deleteCValue(item.ptr)
-            extern
+            Extern.fromCValue(store.context.context, item.ptr)
         } else {
-            Extern.deleteCValue(item.ptr)
             null
         }
     }

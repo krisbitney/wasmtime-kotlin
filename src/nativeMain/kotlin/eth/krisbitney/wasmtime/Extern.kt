@@ -10,13 +10,38 @@ sealed class Extern(
 ) {
 
     companion object {
+        /**
+         * Constructs an [Extern] object from the given [extern] of type [wasmtime_extern_t].
+         * The returned Extern is owned by the caller and must be deleted.
+         * The argument extern: CPointer<wasmtime_extern_t> is also owned by the caller and must be deleted.
+         *
+         * @param store The [wasmtime_context_t] object representing the store.
+         * @param extern The [wasmtime_extern_t] object representing the external value.
+         * @return An [Extern] object corresponding to the given [extern].
+         */
         fun fromCValue(store: CPointer<wasmtime_context_t>, extern: CPointer<wasmtime_extern_t>): Extern {
             val kind = Kind.fromValue(extern.pointed.kind)
             return when (kind) {
-                Kind.FUNC -> Func(store, extern.pointed.of.func.ptr)
-                Kind.GLOBAL -> Global(store, extern.pointed.of.global.ptr)
-                Kind.TABLE -> Table(store, extern.pointed.of.table.ptr)
-                Kind.MEMORY -> Memory(store, extern.pointed.of.memory.ptr)
+                Kind.FUNC -> {
+                    val func = nativeHeap.alloc<wasmtime_func_t>()
+                    memcpy(func.ptr, extern.pointed.of.func.ptr, sizeOf<wasmtime_func_t>().convert())
+                    Func(store, func.ptr)
+                }
+                Kind.GLOBAL -> {
+                    val global = nativeHeap.alloc<wasmtime_global_t>()
+                    memcpy(global.ptr, extern.pointed.of.global.ptr, sizeOf<wasmtime_global_t>().convert())
+                    Global(store, global.ptr)
+                }
+                Kind.TABLE -> {
+                    val table = nativeHeap.alloc<wasmtime_table_t>()
+                    memcpy(table.ptr, extern.pointed.of.table.ptr, sizeOf<wasmtime_table_t>().convert())
+                    Table(store, table.ptr)
+                }
+                Kind.MEMORY -> {
+                    val memory = nativeHeap.alloc<wasmtime_memory_t>()
+                    memcpy(memory.ptr, extern.pointed.of.memory.ptr, sizeOf<wasmtime_memory_t>().convert())
+                    Memory(store, memory.ptr)
+                }
             }
         }
 

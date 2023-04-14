@@ -45,8 +45,8 @@ class Instance(
         }
     )
 
-    fun getExport(name: String): Extern? {
-        val wasmExtern = nativeHeap.alloc<wasmtime_extern_t>()
+    fun getExport(name: String): Extern? = memScoped {
+        val wasmExtern = alloc<wasmtime_extern_t>()
         val found = wasmtime_instance_export_get(
             store,
             instance.ptr,
@@ -55,18 +55,17 @@ class Instance(
             wasmExtern.ptr
         )
 
-        var extern: Extern? = null
-        if (found) {
-            extern = Extern.fromCValue(store, wasmExtern.ptr)
+        return if (found) {
+            Extern.fromCValue(store, wasmExtern.ptr)
+        } else {
+            null
         }
-        Extern.deleteCValue(wasmExtern.ptr)
-        return extern
     }
 
     fun getExport(index: Int): Pair<String, Extern>? = memScoped {
         val namePtr = alloc<CPointerVar<ByteVar>>()
         val nameLen = alloc<size_tVar>()
-        val wasmExtern = nativeHeap.alloc<wasmtime_extern_t>()
+        val wasmExtern = alloc<wasmtime_extern_t>()
 
         val found = wasmtime_instance_export_nth(
             store,
@@ -80,10 +79,8 @@ class Instance(
         return if (found) {
             val name = namePtr.value!!.toKString()
             val extern = Extern.fromCValue(store, wasmExtern.ptr)
-            Extern.deleteCValue(wasmExtern.ptr)
             name to extern
         } else {
-            Extern.deleteCValue(wasmExtern.ptr)
             null
         }
     }
