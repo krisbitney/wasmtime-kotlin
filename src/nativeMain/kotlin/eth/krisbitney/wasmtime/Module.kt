@@ -37,7 +37,7 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
         }
 
         fun wat2Wasm(wat: String): Result<ByteArray> = memScoped {
-            val cBytes: CValuesRef<wasm_byte_vec_t> = cValue<wasm_byte_vec_t>() {}
+            val cBytes: CValuesRef<wasm_byte_vec_t> = cValue<wasm_byte_vec_t>()
             val error = wasmtime_wat2wasm(wat, wat.length.convert(), cBytes)
             if (error != null) {
                 return Result.failure(WasmtimeException(error))
@@ -54,7 +54,7 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
     }
 
     fun imports(): List<ImportType> {
-        val imports = cValue<wasm_importtype_vec_t> { }
+        val imports = cValue<wasm_importtype_vec_t>()
         wasmtime_module_imports(module, imports)
         val list = imports.toList()
         // TODO: `imports` is on the stack. Do I need to free its data pointer?
@@ -63,7 +63,7 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
     }
 
     fun exports(): List<ExportType> {
-        val exports = cValue<wasm_exporttype_vec_t> { }
+        val exports = cValue<wasm_exporttype_vec_t>()
         wasmtime_module_exports(module, exports)
         val list = exports.toList()
         // TODO: `exports` is on the stack. Do I need to free its data pointer?
@@ -72,7 +72,7 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
     }
 
     fun serialize(): ByteArray {
-        val byteVec = cValue<wasm_byte_vec_t> { }
+        val byteVec = cValue<wasm_byte_vec_t>()
         wasmtime_module_serialize(module, byteVec).also { error ->
             error?.let { throw WasmtimeException(error) }
         }

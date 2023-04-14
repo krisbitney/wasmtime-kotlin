@@ -51,7 +51,7 @@ sealed class ExternType(val kind: Kind) {
              * @throws IllegalArgumentException If the given [value] is not a valid [wasm_externkind_t].
              */
             fun fromValue(value: wasm_externkind_t): Kind {
-                return values().find { it.value == value }  ?: throw IllegalArgumentException("Invalid ExternKind value: $value")
+                return values().find { it.value == value }  ?: throw IllegalArgumentException("Invalid ExternType.Kind value: $value")
             }
         }
     }

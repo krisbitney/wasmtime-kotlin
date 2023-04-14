@@ -1,5 +1,6 @@
 package eth.krisbitney.wasmtime
 
+import eth.krisbitney.wasmtime.util.toCValuesRef
 import kotlinx.cinterop.*
 import platform.posix.size_tVar
 import wasmtime.*
@@ -17,22 +18,18 @@ class Instance(
     ) : this(
         store.context.context,
         memScoped {
-            val cImports: CValuesRef<wasmtime_extern_t> = imports
-                .map { it.extern }
-                .toCValues()
-                .ptr
-                .reinterpret()
-
+            val (cImportsRef, cImportsPtr) = imports.toCValuesRef()
             val newInstance = nativeHeap.alloc<wasmtime_instance_t>()
             val trap = alloc<CPointerVar<wasm_trap_t>>()
             val error = wasmtime_instance_new(
                 store.context.context,
                 module.module,
-                cImports,
+                cImportsRef,
                 imports.size.convert(),
                 newInstance.ptr,
                 trap.ptr
             )
+            nativeHeap.free(cImportsPtr)
 
             if (error != null) {
                 nativeHeap.free(newInstance)
@@ -58,17 +55,17 @@ class Instance(
             wasmExtern.ptr
         )
 
-        return if (found) {
-            Extern(store, wasmExtern.ptr)
-        } else {
-            nativeHeap.free(wasmExtern)
-            null
+        var extern: Extern? = null
+        if (found) {
+            extern = Extern.fromCValue(store, wasmExtern.ptr)
         }
+        Extern.deleteCValue(wasmExtern.ptr)
+        return extern
     }
 
-    fun getExport(index: Int): Pair<String, Extern>? {
-        val namePtr = nativeHeap.alloc<CPointerVar<ByteVar>>()
-        val nameLen = nativeHeap.alloc<size_tVar>()
+    fun getExport(index: Int): Pair<String, Extern>? = memScoped {
+        val namePtr = alloc<CPointerVar<ByteVar>>()
+        val nameLen = alloc<size_tVar>()
         val wasmExtern = nativeHeap.alloc<wasmtime_extern_t>()
 
         val found = wasmtime_instance_export_nth(
@@ -82,14 +79,11 @@ class Instance(
 
         return if (found) {
             val name = namePtr.value!!.toKString()
-            nativeHeap.free(nameLen)
-            nativeHeap.free(namePtr)
-            val extern = Extern(store, wasmExtern.ptr)
+            val extern = Extern.fromCValue(store, wasmExtern.ptr)
+            Extern.deleteCValue(wasmExtern.ptr)
             name to extern
         } else {
-            nativeHeap.free(nameLen)
-            nativeHeap.free(namePtr)
-            nativeHeap.free(wasmExtern)
+            Extern.deleteCValue(wasmExtern.ptr)
             null
         }
     }

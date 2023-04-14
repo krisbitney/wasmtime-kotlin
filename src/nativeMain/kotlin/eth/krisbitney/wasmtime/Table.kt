@@ -6,9 +6,9 @@ import wasmtime.*
 
 @OptIn(ExperimentalStdlibApi::class)
 class Table(
-    private val store: CPointer<wasmtime_context_t>,
+    store: CPointer<wasmtime_context_t>,
     val table: CPointer<wasmtime_table_t>,
-) : AutoCloseable {
+) : Extern(store, Extern.Kind.TABLE), AutoCloseable {
 
     constructor(
         store: Store<*>,

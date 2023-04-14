@@ -10,7 +10,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
     constructor(engine: Engine) :
             this(wasmtime_linker_new(engine.engine) ?: throw Exception("failed to create linker"))
 
-    fun allowShadowing(allowShadowing: Boolean) {
+    fun allowShadowing(allowShadowing: Boolean): Linker = this.apply {
         wasmtime_linker_allow_shadowing(linker, allowShadowing)
     }
 
@@ -19,7 +19,8 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         module: String,
         name: String,
         item: Extern
-    ) {
+    ): Linker = this.apply {
+        val wasmExtern = Extern.allocateCValue(item)
         val error = wasmtime_linker_define(
             linker,
             store.context.context,
@@ -27,8 +28,9 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             module.length.convert(),
             name,
             name.length.convert(),
-            item.extern
+            wasmExtern
         )
+        Extern.deleteCValue(wasmExtern)
         if (error != null) throw WasmtimeException(error)
     }
 
@@ -39,7 +41,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         callback: wasmtime_func_callback_t? = null,
         data: T? = null,
         finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
-    ) {
+    ): Linker = this.apply {
         val cFuncType = FuncType.allocateCValue(funcType)
         val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
         val error = wasmtime_linker_define_func(
@@ -60,40 +62,40 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         }
     }
 
-    fun <T: Any>defineFuncUnchecked(
-        module: String,
-        name: String,
-        funcType: FuncType,
-        callback: wasmtime_func_unchecked_callback_t? = null,
-        data: T? = null,
-        finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
-    ) {
-        val cFuncType = FuncType.allocateCValue(funcType)
-        val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
-        val error = wasmtime_linker_define_func_unchecked(
-            linker,
-            module,
-            module.length.convert(),
-            name,
-            name.length.convert(),
-            cFuncType,
-            callback,
-            dataPtr,
-            finalizer
-        )
-        FuncType.deleteCValue(cFuncType)
-        dataPtr?.asStableRef<Any>()?.dispose()
-        if (error != null) {
-            throw WasmtimeException(error)
-        }
-    }
+//    fun <T: Any>defineFuncUnchecked(
+//        module: String,
+//        name: String,
+//        funcType: FuncType,
+//        callback: wasmtime_func_unchecked_callback_t? = null,
+//        data: T? = null,
+//        finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>? = null
+//    ): Linker = this.apply {
+//        val cFuncType = FuncType.allocateCValue(funcType)
+//        val dataPtr: COpaquePointer? = data?.let { StableRef.create(data).asCPointer() }
+//        val error = wasmtime_linker_define_func_unchecked(
+//            linker,
+//            module,
+//            module.length.convert(),
+//            name,
+//            name.length.convert(),
+//            cFuncType,
+//            callback,
+//            dataPtr,
+//            finalizer
+//        )
+//        FuncType.deleteCValue(cFuncType)
+//        dataPtr?.asStableRef<Any>()?.dispose()
+//        if (error != null) {
+//            throw WasmtimeException(error)
+//        }
+//    }
 
-    fun defineWasi() {
+    fun defineWasi(): Linker = this.apply {
         val error = wasmtime_linker_define_wasi(linker)
         if (error != null) throw WasmtimeException(error)
     }
 
-    fun defineInstance(store: Store<*>, name: String, instance: Instance) {
+    fun defineInstance(store: Store<*>, name: String, instance: Instance): Linker = this.apply {
         val error = wasmtime_linker_define_instance(
             linker,
             store.context.context,
@@ -123,7 +125,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         return Instance(store.context.context, instance.useContents { this })
     }
 
-    fun module(store: Store<*>, name: String, module: Module) {
+    fun module(store: Store<*>, name: String, module: Module): Linker = this.apply {
         val error = wasmtime_linker_module(
             linker,
             store.context.context,
@@ -165,11 +167,14 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             name.length.convert(),
             item.ptr
         )
-        if (!found) {
-            nativeHeap.free(item)
-            return null
+        return if (found) {
+            val extern = Extern.fromCValue(store.context.context, item.ptr)
+            Extern.deleteCValue(item.ptr)
+            extern
+        } else {
+            Extern.deleteCValue(item.ptr)
+            null
         }
-        return Extern(store.context.context, item.ptr)
     }
 
     override fun close() {

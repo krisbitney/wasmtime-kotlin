@@ -13,13 +13,13 @@ class Caller(val caller: CPointer<wasmtime_caller_t>) {
 
     /** The returned Extern is owned by the caller */
     fun exportGet(name: String): Extern? {
-        val item = nativeHeap.alloc<wasmtime_extern_t>()
-        val found =  wasmtime_caller_export_get(caller, name, name.length.toULong(), item.ptr)
-        return if (found) {
-            Extern(context.context, item.ptr)
-        } else {
-            nativeHeap.free(item)
-            null
+        val wasmExtern = nativeHeap.alloc<wasmtime_extern_t>()
+        val found =  wasmtime_caller_export_get(caller, name, name.length.toULong(), wasmExtern.ptr)
+        var extern: Extern? = null
+        if (found) {
+            extern = Extern.fromCValue(context.context, wasmExtern.ptr)
         }
+        Extern.deleteCValue(wasmExtern.ptr)
+        return extern
     }
 }

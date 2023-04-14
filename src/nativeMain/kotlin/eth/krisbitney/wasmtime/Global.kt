@@ -6,9 +6,9 @@ import wasmtime.*
 
 @OptIn(ExperimentalStdlibApi::class)
 class Global(
-    private val store: CPointer<wasmtime_context_t>,
+    store: CPointer<wasmtime_context_t>,
     val global: CPointer<wasmtime_global_t>
-) : AutoCloseable {
+) : Extern(store, Extern.Kind.GLOBAL), AutoCloseable {
 
     constructor(
         store: Store<*>,

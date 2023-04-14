@@ -12,9 +12,9 @@ typealias FuncCallback = (caller: Caller, args: List<Val>) -> Result<List<Val>>
 /** Func is owned by the Store, and does not need to be deleted by the user */
 @OptIn(ExperimentalStdlibApi::class)
 class Func(
-    val store: CPointer<wasmtime_context_t>,
+    store: CPointer<wasmtime_context_t>,
     val func: CPointer<wasmtime_func_t>
-) : AutoCloseable {
+) : Extern(store, Extern.Kind.FUNC), AutoCloseable {
 
     constructor(
         store: Store<*>,

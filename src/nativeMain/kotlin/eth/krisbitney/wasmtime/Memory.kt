@@ -8,9 +8,9 @@ import wasmtime.*
 /** Memory is owned by the Store, and does not need to be deleted by the user */
 @OptIn(ExperimentalStdlibApi::class)
 class Memory(
-    private val store: CPointer<wasmtime_context_t>,
+    store: CPointer<wasmtime_context_t>,
     val memory: CPointer<wasmtime_memory_t>
-) : AutoCloseable {
+) : Extern(store, Extern.Kind.MEMORY), AutoCloseable {
 
     constructor(store: Store<*>, memoryType: MemoryType) :
             this(
