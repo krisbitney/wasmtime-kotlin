@@ -7,6 +7,8 @@ import wasmtime.*
 /**
  * Represents a configuration for a Wasmtime instance. Wraps the native `wasm_config_t` structure.
  * This class provides methods for configuring various settings and features of Wasmtime.
+ * Once passed into an [Engine] instance, the [Config] instance is owned by the [Engine] and
+ * will be freed when the [Engine] is closed.
  *
  * @property config A pointer to the native `wasm_config_t` structure.
  * @constructor Creates a new instance of [Config] by allocating a new `wasm_config_t` structure.
@@ -15,7 +17,7 @@ import wasmtime.*
 @OptIn(ExperimentalStdlibApi::class)
 class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
 
-    constructor() : this(wasm_config_new() ?: throw RuntimeException("Failed to create wasmtime config"))
+    constructor() : this(wasm_config_new() ?: throw RuntimeException("Failed to create wasm config"))
 
 
     /**

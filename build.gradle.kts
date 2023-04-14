@@ -38,9 +38,8 @@ kotlin {
             }
         }
         binaries {
-            staticLib {
+            sharedLib {
                 baseName = "wasmtime_kt"
-                linkerOpts("-Lwasmtime-v7.0.0-aarch64-macos-c-api/lib", "-lwasmtime")
             }
         }
     }

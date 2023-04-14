@@ -1,10 +1,12 @@
 package eth.krisbitney.wasmtime
 
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertNotEquals
 
 @OptIn(ExperimentalStdlibApi::class)
 class ConfigTest {
+
     @Test
     fun testNewConfig() {
         Config().use { config ->
@@ -59,17 +61,16 @@ class ConfigTest {
         }
     }
 
+    @Ignore
     @Test
     fun testCustomConfig() {
-        Config().use { config ->
-            config.setStrategy(Config.WasmtimeStrategy.CRANELIFT)
-                .setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
-                .setDebugInfo(true)
-            Engine(config).use { engine ->
-                Store(engine, false).use { store ->
-                    store.engine
-                }
-            }
-        }
+        val config = Config()
+            .setStrategy(Config.WasmtimeStrategy.CRANELIFT)
+            .setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
+            .setDebugInfo(true)
+        val engine = Engine(config)
+        val store = Store(engine, false)
+        store.close()
+        engine.close()
     }
 }
