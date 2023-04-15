@@ -11,7 +11,7 @@ class Table(
 ) : Extern(store, Extern.Kind.TABLE), AutoCloseable {
 
     val type: TableType by lazy {
-        val ptr = wasmtime_table_type(store, table) ?: throw Error("failed to get table type")
+        val ptr = wasmtime_table_type(store, table) ?: throw Exception("failed to get table type")
         TableType(ptr)
     }
 

@@ -5,16 +5,70 @@ import kotlinx.cinterop.*
 import platform.posix.memcpy
 import wasmtime.*
 
+/**
+ * Represents a WebAssembly value in the Wasmtime environment.
+ *
+ * @property kind The [Kind] of this value, representing its type.
+ * @property value The actual value of the appropriate type.
+ */
 data class Val(val kind: Kind, val value: Any) {
 
+    /**
+     * Creates a [Val] instance representing an `i32` WebAssembly value.
+     *
+     * @param value The `Int` value to store.
+     */
     constructor(value: Int) : this(Kind.I32, value)
+
+    /**
+     * Creates a [Val] instance representing an `i64` WebAssembly value.
+     *
+     * @param value The `Long` value to store.
+     */
     constructor(value: Long) : this(Kind.I64, value)
+
+    /**
+     * Creates a [Val] instance representing an `f32` WebAssembly value.
+     *
+     * @param value The `Float` value to store.
+     */
     constructor(value: Float) : this(Kind.F32, value)
+
+    /**
+     * Creates a [Val] instance representing an `f64` WebAssembly value.
+     *
+     * @param value The `Double` value to store.
+     */
     constructor(value: Double) : this(Kind.F64, value)
+
+    /**
+     * Creates a [Val] instance representing a `v128` WebAssembly value.
+     *
+     * @param value The `wasmtime_v128` value to store.
+     */
     constructor(value: wasmtime_v128) : this(Kind.V128, value)
+
+    /**
+     * Creates a [Val] instance representing a `funcref` WebAssembly value.
+     *
+     * @param value The `CPointer<wasmtime_func_t>` value to store.
+     */
     constructor(value: CPointer<wasmtime_func_t>) : this(Kind.FUNCREF, value)
+
+    /**
+     * Creates a [Val] instance representing an `externref` WebAssembly value.
+     *
+     * @param value The [ExternRef] value to store.
+     */
     constructor(value: ExternRef<*>) : this(Kind.EXTERNREF, value)
 
+    /**
+     * Creates a [Val] instance for the given [ValType] and value.
+     *
+     * @param valType The [ValType] representing the type of the value.
+     * @param value The value of the appropriate type.
+     * @throws IllegalArgumentException If the provided value does not match the expected type.
+     */
     constructor(valType: ValType<*>, value: Any) : this(Kind.fromValType(valType), value) {
         if (valType is ValType.I32 && value !is Int) {
             throw IllegalArgumentException("Expected Int for I32")
@@ -31,49 +85,97 @@ data class Val(val kind: Kind, val value: Any) {
         }
     }
 
+    /**
+     * Retrieves the `Int` value of this [Val] instance.
+     *
+     * @throws IllegalStateException If the [kind] is not [Kind.I32].
+     */
     val i32: Int
         get() {
             require(kind == Kind.I32) { "Value is not i32" }
             return value as Int
         }
 
+    /**
+     * Retrieves the `Long` value of this [Val] instance.
+     *
+     * @throws IllegalStateException If the [kind] is not [Kind.I64].
+     */
     val i64: Long
         get() {
             require(kind == Kind.I64) { "Value is not i64" }
             return value as Long
         }
 
+    /**
+     * Retrieves the `Float` value of this [Val] instance.
+     *
+     * @throws IllegalStateException If the [kind] is not [Kind.F32].
+     */
     val f32: Float
         get() {
             require(kind == Kind.F32) { "Value is not f32" }
             return value as Float
         }
 
+    /**
+     * Retrieves the `Double` value from this [Val] instance.
+     *
+     * @throws IllegalStateException If the [kind] is not [Kind.F64].
+     */
     val f64: Double
         get() {
             require(kind == Kind.F64) { "Value is not f64" }
             return value as Double
         }
 
+    /**
+     * Retrieves the `v128` value from this [Val] instance.
+     *
+     * @property v128 The `v128` value contained in this [Val].
+     * @throws IllegalStateException If the [kind] is not [Kind.V128].
+     */
     val v128: wasmtime_v128
         get() {
             require(kind == Kind.V128) { "Value is not v128" }
             return value as wasmtime_v128
         }
 
+    /**
+     * Retrieves the function reference value from this [Val] instance.
+     *
+     * @property funcref The function reference (`CPointer<wasmtime_func_t>`) value contained in this [Val].
+     * @throws IllegalStateException If the [kind] is not [Kind.FUNCREF].
+     */
     val funcref: CPointer<wasmtime_func_t>
         get() {
             require(kind == Kind.FUNCREF) { "Value is not funcref" }
             return value as CPointer<wasmtime_func_t>
         }
 
+    /**
+     * Retrieves the extern reference value from this [Val] instance.
+     *
+     * @property externref The extern reference (`ExternRef<*>`) value contained in this [Val].
+     * @throws IllegalStateException If the [kind] is not [Kind.EXTERNREF].
+     */
     val externref: ExternRef<*>
         get() {
             require(kind == Kind.EXTERNREF) { "Value is not externref" }
             return value as ExternRef<*>
         }
 
+    /**
+     * A companion object that provides utility functions for creating and working with [Val] instances.
+     */
     companion object {
+        /**
+         * Creates a [Val] instance from a given [wasmtime_val_t] C pointer.
+         *
+         * @param value A C pointer to a [wasmtime_val_t] struct.
+         * @return A [Val] instance representing the provided wasm value.
+         * @throws IllegalArgumentException If the wasm value has an unsupported kind.
+         */
         fun fromCValue(value: CPointer<wasmtime_val_t>): Val {
             return when (value.pointed.kind.toInt()) {
                 WASMTIME_I32 -> Val(value.pointed.of.i32)
@@ -87,17 +189,39 @@ data class Val(val kind: Kind, val value: Any) {
             }
         }
 
+        /**
+         * Retrieves the [Kind] of a wasm value from a given [wasmtime_val_t] C pointer.
+         *
+         * @param wasmtimeVal A C pointer to a [wasmtime_val_t] struct.
+         * @return A [Kind] representing the wasm value's kind.
+         * @throws IllegalArgumentException If the wasm value has an unsupported kind.
+         */
         fun kindFromCValue(wasmtimeVal: CPointer<wasmtime_val_t>): Kind {
             return Kind.fromValue(wasmtimeVal.pointed.kind.toInt())
         }
 
+        /**
+         * Deletes a [wasmtime_val_t] C pointer, freeing any resources associated with it.
+         *
+         * @param wasmtimeVal A C pointer to a [wasmtime_val_t] struct.
+         */
         fun deleteCValue(wasmtimeVal: CPointer<wasmtime_val_t>) {
             if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_EXTERNREF) {
                 wasmtime_externref_delete(wasmtimeVal.pointed.of.externref)
+            } else if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_FUNCREF) {
+                nativeHeap.free(wasmtimeVal.pointed.of.funcref)
+            } else if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_V128) {
+                nativeHeap.free(wasmtimeVal.pointed.of.v128)
             }
             wasmtime_val_delete(wasmtimeVal)
         }
 
+        /**
+         * Allocates a new [wasmtime_val_t] from the provided [Val] instance.
+         *
+         * @param value A [Val] instance representing a wasm value.
+         * @return A C pointer to a newly allocated [wasmtime_val_t] struct representing the wasm value.
+         */
         fun allocateCValue(value: Val): CPointer<wasmtime_val_t> {
             return when (value.kind) {
                 Val.Kind.I32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
@@ -131,6 +255,12 @@ data class Val(val kind: Kind, val value: Any) {
             }
         }
 
+        /**
+         * Copies a [wasmtime_val_t] C pointer, creating a new [wasmtime_val_t] C pointer with the same contents.
+         *
+         * @param wasmtimeVal A C pointer to a [wasmtime_val_t] struct.
+         * @return A C pointer to a newly allocated [wasmtime_val_t] struct containing the same wasm value.
+         */
         fun copyCVal(wasmtimeVal: CPointer<wasmtime_val_t>): CPointer<wasmtime_val_t> {
             val copy = nativeHeap.alloc<wasmtime_val_t>().ptr
             wasmtime_val_copy(copy, wasmtimeVal)
@@ -138,6 +268,11 @@ data class Val(val kind: Kind, val value: Any) {
         }
     }
 
+    /**
+     * An enumeration representing the various kinds of wasm values that can be stored in a [Val] instance.
+     *
+     * @property value The integer value associated with the wasm value kind.
+     */
     enum class Kind(val value: Int) {
         I32(0),
         I64(1),
@@ -148,10 +283,23 @@ data class Val(val kind: Kind, val value: Any) {
         EXTERNREF(6);
 
         companion object {
+            /**
+             * Retrieves the [Kind] enumeration value corresponding to the provided integer [value].
+             *
+             * @param value The integer value representing a wasm value kind.
+             * @return The [Kind] enumeration value corresponding to the provided integer value.
+             * @throws IllegalArgumentException If the provided integer value does not correspond to a valid wasm value kind.
+             */
             fun fromValue(value: Int): Kind {
                 return values().find { it.value == value } ?: throw IllegalArgumentException("Invalid WasmtimeValKind value: $value")
             }
 
+            /**
+             * Retrieves the [Kind] enumeration value corresponding to the provided [ValType] instance.
+             *
+             * @param valType A [ValType] instance representing a wasm value type.
+             * @return The [Kind] enumeration value corresponding to the provided [ValType] instance.
+             */
             fun fromValType(valType: ValType<*>): Kind {
                 return when (valType.kind) {
                     ValType.Kind.I32 -> I32

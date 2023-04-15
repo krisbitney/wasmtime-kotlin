@@ -20,7 +20,7 @@ import wasmtime.*
  */
 class Trap(private val trap: CPointer<wasm_trap_t>) : Throwable() {
 
-    constructor(message: String) : this(wasmtime_trap_new(message, message.length.convert()) ?: throw Error("failed to create trap"))
+    constructor(message: String) : this(wasmtime_trap_new(message, message.length.convert()) ?: throw Exception("failed to create trap"))
 
     override val message by lazy {
         memScoped {

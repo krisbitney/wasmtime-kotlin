@@ -26,7 +26,7 @@ class TableType(
         } ?: throw RuntimeException("failed to get table type element"),
         wasm_tabletype_limits(tableType)?.let {
             WasmLimits(it.pointed.min, it.pointed.max)
-        } ?: throw Error("failed to get table type limits")
+        } ?: throw Exception("failed to get table type limits")
     ) {
         wasm_tabletype_delete(tableType)
     }
@@ -50,7 +50,7 @@ class TableType(
             nativeHeap.free(cLimits)
             if (cTableType == null) {
                 nativeHeap.free(cElement)
-                throw Error("failed to create table type")
+                throw Exception("failed to create table type")
             }
             return cTableType
         }

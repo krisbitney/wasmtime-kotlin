@@ -12,12 +12,12 @@ class Memory(
 ) : Extern(store, Extern.Kind.MEMORY), AutoCloseable {
 
     val type: MemoryType by lazy {
-        val memoryType = wasmtime_memory_type(store, memory) ?: throw Error("failed to get memory type")
+        val memoryType = wasmtime_memory_type(store, memory) ?: throw Exception("failed to get memory type")
         MemoryType(memoryType)
     }
 
     val data: ByteArray get() {
-        val data = wasmtime_memory_data(store, memory) ?: throw Error("failed to get memory data")
+        val data = wasmtime_memory_data(store, memory) ?: throw Exception("failed to get memory data")
         return data.readBytes(dataSize.convert())
     }
 

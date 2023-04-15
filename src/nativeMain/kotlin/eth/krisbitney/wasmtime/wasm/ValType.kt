@@ -182,7 +182,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
          * @throws Error If the allocation fails.
          */
         fun allocateCValue(kind: Kind): CPointer<wasm_valtype_t> {
-            return wasm_valtype_new(kind.value.toUByte()) ?: throw Error("failed to create wasm_valtype")
+            return wasm_valtype_new(kind.value.toUByte()) ?: throw Exception("failed to create wasm_valtype")
         }
     }
 

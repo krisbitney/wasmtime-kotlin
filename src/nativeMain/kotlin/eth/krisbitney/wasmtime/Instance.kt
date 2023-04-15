@@ -5,12 +5,31 @@ import kotlinx.cinterop.*
 import platform.posix.size_tVar
 import wasmtime.*
 
+/**
+ * Represents an instance of a WebAssembly module.
+ * An [Instance] provides access to the module's exported functions and values.
+ * It is created by instantiating a compiled [Module] with the required [Extern] imports.
+ *
+ * @property instance The `wasmtime_instance_t` structure representing the WebAssembly instance.
+ *
+ * @constructor Creates an [Instance] from an existing [Store], [Module], and a list of [Extern] imports.
+ * @constructor Creates an [Instance] from the provided [CPointer]s to a `wasmtime_context_t` and a `wasmtime_instance_t`.
+ */
 @OptIn(ExperimentalStdlibApi::class)
 class Instance(
     private val store: CPointer<wasmtime_context_t>,
     val instance: wasmtime_instance_t
 ) : AutoCloseable {
 
+    /**
+     * Instantiates the provided [Module] with the given [imports] in the [store].
+     *
+     * @param store The [Store] in which to create the instance.
+     * @param module The compiled [Module] to instantiate.
+     * @param imports The list of [Extern] imports to provide to the module during instantiation.
+     * @throws WasmtimeException If there is an error during instantiation, such as a link error.
+     * @throws Trap If a WebAssembly trap occurs during instantiation.
+     */
     constructor(
         store: Store<*>,
         module: Module,
@@ -45,6 +64,12 @@ class Instance(
         }
     )
 
+    /**
+     * Retrieves an exported value by its [name] from the instance.
+     *
+     * @param name The name of the export to retrieve.
+     * @return The [Extern] representing the exported value, or `null` if the export with the given name is not found.
+     */
     fun getExport(name: String): Extern? = memScoped {
         val wasmExtern = alloc<wasmtime_extern_t>()
         val found = wasmtime_instance_export_get(
@@ -62,6 +87,13 @@ class Instance(
         }
     }
 
+    /**
+     * Retrieves an exported value by its [index] from the instance.
+     *
+     * @param index The index of the export to retrieve.
+     * @return A [Pair] containing the name of the export and the [Extern] representing the exported value,
+     * or `null` if the export with the given index is not found.
+     */
     fun getExport(index: Int): Pair<String, Extern>? = memScoped {
         val namePtr = alloc<CPointerVar<ByteVar>>()
         val nameLen = alloc<size_tVar>()

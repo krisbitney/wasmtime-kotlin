@@ -6,6 +6,14 @@ import kotlinx.cinterop.*
 import eth.krisbitney.wasmtime.util.toList
 import wasmtime.*
 
+/**
+ * A compiled WebAssembly module is ready to be instantiated and can be inspected for imports/exports.
+ * It is safe to use a module across multiple threads simultaneously.
+ *
+ * @property module Pointer to the underlying `wasmtime_module_t` structure.
+ * @constructor Creates a Module instance from the provided engine and wasm byte array.
+ * @constructor Creates a Module instance from the provided engine and WebAssembly text format (WAT) string.
+ */
 @OptIn(ExperimentalStdlibApi::class, ExperimentalUnsignedTypes::class)
 class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
 
@@ -19,13 +27,20 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
                         error?.let { throw WasmtimeException(error) }
                     }
 
-                    modulePtr.value!!
+                    modulePtr.value ?: throw Exception("Failed to create module.")
                 }
             )
 
     constructor(engine: Engine, wat: String) : this(engine, wat2Wasm(wat).getOrThrow())
 
     companion object {
+        /**
+         * Validates a WebAssembly binary.
+         *
+         * @param engine The Engine instance to use for validation.
+         * @param wasm ByteArray containing the WebAssembly binary.
+         * @return Result<Unit> indicating success or failure of validation.
+         */
         fun validate(engine: Engine, wasm: ByteArray): Result<Unit> {
             val wasmBytes = wasm.toUByteArray().toCValues()
             val error = wasmtime_module_validate(engine.engine, wasmBytes, wasm.size.convert())
@@ -36,6 +51,12 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
             }
         }
 
+        /**
+         * Converts a WebAssembly text format (WAT) string to a WebAssembly binary ByteArray.
+         *
+         * @param wat String containing the WebAssembly text format (WAT).
+         * @return Result<ByteArray> with the WebAssembly binary, or an error if conversion fails.
+         */
         fun wat2Wasm(wat: String): Result<ByteArray> = memScoped {
             val cBytes: CValuesRef<wasm_byte_vec_t> = cValue<wasm_byte_vec_t>()
             val error = wasmtime_wat2wasm(wat, wat.length.convert(), cBytes)
@@ -53,24 +74,37 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
         }
     }
 
+    /**
+     * Returns a list of import types required by this module.
+     *
+     * @return [List] of [ImportType] instances required by this module.
+     */
     fun imports(): List<ImportType> {
         val imports = cValue<wasm_importtype_vec_t>()
         wasmtime_module_imports(module, imports)
         val list = imports.toList()
-        // TODO: `imports` is on the stack. Do I need to free its data pointer?
         imports.useContents { this.data?.let { nativeHeap.free(it) } }
         return list
     }
 
+    /**
+     * Returns a list of export types provided by this module.
+     *
+     * @return [List] of [ExportType] instances provided by this module.
+     */
     fun exports(): List<ExportType> {
         val exports = cValue<wasm_exporttype_vec_t>()
         wasmtime_module_exports(module, exports)
         val list = exports.toList()
-        // TODO: `exports` is on the stack. Do I need to free its data pointer?
         exports.useContents { this.data?.let { nativeHeap.free(it) } }
         return list
     }
 
+    /**
+     * Serializes the compiled module artifacts as a byte array.
+     *
+     * @return [ByteArray] representing the serialized compiled module.
+     */
     fun serialize(): ByteArray {
         val byteVec = cValue<wasm_byte_vec_t>()
         wasmtime_module_serialize(module, byteVec).also { error ->
@@ -79,6 +113,13 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
         return byteVec.getBytes()
     }
 
+    /**
+     * Deserializes the provided byte array into a Module instance.
+     *
+     * @param engine The Engine instance to use for deserialization.
+     * @param bytes ByteArray containing the serialized module data.
+     * @return Module instance obtained from deserializing the input byte array.
+     */
     fun deserialize(engine: Engine, bytes: ByteArray): Module = memScoped {
         val bytesValues = bytes.toUByteArray().toCValues()
         val modulePtr = allocPointerTo<wasmtime_module_t>()

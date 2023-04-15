@@ -26,11 +26,11 @@ class ExportType(val name: String, val type: ExternType) {
      */
     constructor(exportType: CPointer<wasm_exporttype_t>) : this(
         exportType.let {
-            val namePtr = wasm_exporttype_name(exportType) ?: throw Error("Failed to get export name")
+            val namePtr = wasm_exporttype_name(exportType) ?: throw Exception("Failed to get export name")
             namePtr.pointed.data!!.toKString()
         },
         exportType.let {
-            val externTypePtr = wasm_exporttype_type(exportType) ?: throw Error("Failed to get export type")
+            val externTypePtr = wasm_exporttype_type(exportType) ?: throw Exception("Failed to get export type")
             ExternType.fromCValue(externTypePtr)
         }
     ) {

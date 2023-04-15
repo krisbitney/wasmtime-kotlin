@@ -49,7 +49,7 @@ class GlobalType(
             val content = globalType.content
             val mutability = globalType.mutability
             return wasm_globaltype_new(ValType.allocateCValue(content), mutability.wasmMutability)
-                ?: throw Error("failed to create global type")
+                ?: throw Exception("failed to create global type")
         }
 
         /**

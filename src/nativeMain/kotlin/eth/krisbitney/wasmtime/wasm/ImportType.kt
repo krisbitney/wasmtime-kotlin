@@ -29,15 +29,15 @@ class ImportType(
      */
     constructor(importType: CPointer<wasm_importtype_t>) : this(
         importType.let {
-            val moduleNamePtr = wasm_importtype_module(importType) ?: throw Error("Failed to get module name")
+            val moduleNamePtr = wasm_importtype_module(importType) ?: throw Exception("Failed to get module name")
             moduleNamePtr.pointed.data!!.toKString()
                        },
         importType.let {
-            val namePtr = wasm_importtype_name(importType) ?: throw Error("Failed to get import name")
+            val namePtr = wasm_importtype_name(importType) ?: throw Exception("Failed to get import name")
             namePtr.pointed.data!!.toKString()
                        },
         importType.let {
-            val externTypePtr = wasm_importtype_type(importType) ?: throw Error("Failed to get import type")
+            val externTypePtr = wasm_importtype_type(importType) ?: throw Exception("Failed to get import type")
             ExternType.fromCValue(externTypePtr)
         }
     ) {

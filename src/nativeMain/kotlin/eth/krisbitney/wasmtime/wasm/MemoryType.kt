@@ -19,7 +19,7 @@ class MemoryType(val limits: WasmLimits) : ExternType(ExternType.Kind.MEMORY) {
 
     constructor(memoryType: CPointer<wasm_memorytype_t>) : this(
         memoryType.run {
-            val ptr = wasm_memorytype_limits(memoryType) ?: throw Error("failed to get memory limits")
+            val ptr = wasm_memorytype_limits(memoryType) ?: throw Exception("failed to get memory limits")
             WasmLimits(ptr.pointed.min, ptr.pointed.max)
         }
     ) {
@@ -44,7 +44,7 @@ class MemoryType(val limits: WasmLimits) : ExternType(ExternType.Kind.MEMORY) {
             val cMemoryType = wasm_memorytype_new(cLimits.ptr)
             if (cMemoryType == null) {
                 nativeHeap.free(cLimits.ptr)
-                throw Error("failed to create memory type")
+                throw Exception("failed to create memory type")
             }
             return cMemoryType
         }
