@@ -18,7 +18,6 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
 
     constructor() : this(wasm_config_new() ?: throw RuntimeException("Failed to create wasm config"))
 
-
     /**
      * Sets whether DWARF debug information is constructed at runtime to describe JIT code.
      * By default, this setting is `false`. When enabled, it will attempt to inform native
@@ -39,7 +38,7 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      *
      * This method configures whether or not fuel is enabled for generated code. By default, this setting
      * is `false`. When enabled, it will enable fuel counting, meaning that fuel will be consumed every
-     * time a Wasm instruction is executed and will trap when reaching zero.
+     * time a Wasm instruction is executed and will trap when reaching zero. This is false by default.
      *
      * @param value A Boolean value representing whether to enable fuel consumption.
      * @return The Config object with the updated setting.
@@ -142,7 +141,7 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      *
      * @param value A boolean value indicating whether to enable (true) or disable (false) the WebAssembly multi-memory proposal.
      */
-    fun setWasmMultiMemory(value: Boolean) {
+    fun setWasmMultiMemory(value: Boolean): Config = this.apply {
         wasmtime_config_wasm_multi_memory_set(config, value)
     }
 
