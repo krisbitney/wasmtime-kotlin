@@ -3,7 +3,6 @@ package eth.krisbitney.wasmtime
 import kotlinx.cinterop.pointed
 import kotlin.test.*
 
-@OptIn(ExperimentalStdlibApi::class)
 class ConfigTest {
 
     @Test
@@ -171,21 +170,5 @@ class ConfigTest {
         val config = Config()
         val result = config.cacheConfigLoad(null)
         assert(result.isSuccess)
-    }
-
-    @Ignore
-    @Test
-    fun testConfigInEngine() {
-        val engine = Engine {
-            setStrategy(Config.WasmtimeStrategy.CRANELIFT)
-            setCraneliftOptLevel(Config.OptLevel.SPEED_AND_SIZE)
-            setProfiler(Config.ProfilingStrategy.JITDUMP)
-            setConsumeFuel(false)
-            setMaxWasmStack(4096u)
-            setDebugInfo(true)
-        }
-        val store = Store(engine, false)
-        store.close()
-        engine.close()
     }
 }
