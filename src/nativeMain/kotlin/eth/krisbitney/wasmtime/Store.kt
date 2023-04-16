@@ -34,7 +34,7 @@ class Store<T>(
      * Retrieves the [Context] associated with this [Store].
      * @throws RuntimeException if the Wasmtime context retrieval fails.
      */
-    val context: Context<T?>
+    val context: Context<T>
         get() {
             val ptr = wasmtime_store_context(store) ?: throw RuntimeException("Failed to get Wasmtime context")
             return Context(ptr)

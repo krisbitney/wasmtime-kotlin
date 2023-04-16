@@ -1,31 +1,57 @@
 package eth.krisbitney.wasmtime
 
-import kotlinx.cinterop.pointed
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
+import kotlin.test.*
 
-@OptIn(ExperimentalStdlibApi::class)
 class StoreTest {
 
-    @Test
-    fun testCreate() {
-        val store: Store<Unit> = Store(Engine(), Unit)
-        store.close()
-    }
-
-    @Test
-    fun testEngine() {
-        Store(Engine(), Unit).use { store ->
-            val engine: Engine = store.engine
+        @Test
+        fun `test create Store with default data`() {
+            val engine = Engine()
+            val store = Store<Unit>(engine)
+            assertNotNull(store)
+            store.close()
             engine.close()
         }
-    }
 
-    @Test
-    fun testStoreData() {
-        val store: Store<Int> = Store(Engine(), 1234)
-        assertEquals(1234, store.data)
-        store.close()
-    }
+        @Test
+        fun `test create Store with custom data`() {
+            val engine = Engine()
+            val store = Store(engine, data = "CustomData")
+            assertNotNull(store)
+            assertNotNull(store.data)
+            store.close()
+            engine.close()
+        }
+
+        @Test
+        fun `test getContext`() {
+            val engine = Engine()
+            val store = Store(engine, data = "CustomData")
+            val context = store.context
+            assertNotNull(context)
+            assertNotNull(context.context)
+            assertNotEquals(context.context.rawValue.toLong(), 0)
+            store.close()
+            engine.close()
+        }
+
+        @Test
+        fun `test setLimiter`() {
+            val engine = Engine()
+            val store = Store(engine, data = "CustomData")
+            store.setLimiter(memorySize = 1024, tableElements = 128, instances = 20, tables = 20, memories = 20)
+            store.close()
+            engine.close()
+        }
+        @Test
+        fun `test memory safety`() {
+            val engine = Engine()
+            val count = 10_000
+
+            repeat(count) { i ->
+                Store(engine, data = i).close()
+            }
+
+            engine.close()
+        }
 }

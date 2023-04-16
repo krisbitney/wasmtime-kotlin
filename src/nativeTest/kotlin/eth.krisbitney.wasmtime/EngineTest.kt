@@ -36,4 +36,10 @@ class EngineTest {
         engine.incrementEpoch()
         engine.close()
     }
+
+    @Test
+    fun `test memory safety`() {
+        val count = 10_000
+        repeat(count) { Engine().close() }
+    }
 }

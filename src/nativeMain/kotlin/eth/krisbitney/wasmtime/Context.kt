@@ -17,21 +17,18 @@ class Context<T>(val context: CPointer<wasmtime_context_t>) {
      * Retrieves the user-specified data associated with the [Store] this [Context] belongs to.
      * @return The associated data, or `null` if no data is set.
      */
-    inline fun <reified T>getData(): T? {
-        val ref = wasmtime_context_get_data(context)?.asStableRef<Any>()
-        val data = ref?.get() as? T
-        ref?.dispose()
-        return data
-    }
+    inline fun <reified T>getData(): T? = wasmtime_context_get_data(context)?.asStableRef<Any>()?.get() as? T
+
 
     /**
      * Sets or updates the user-specified data associated with the [Store] this [Context] belongs to.
      * @param data The data to be set, or `null` to clear the data.
      */
     fun setData(data: T?) {
+        val oldDataPtr = wasmtime_context_get_data(context)
         val dataPtr: COpaquePointer? = data?.let { StableRef.create(it).asCPointer() }
         wasmtime_context_set_data(context, dataPtr)
-        dataPtr?.asStableRef<Any>()?.dispose()
+        oldDataPtr?.asStableRef<Any>()?.dispose()
     }
 
     /**
