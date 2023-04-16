@@ -1,7 +1,7 @@
 package eth.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
-import eth.krisbitney.wasmtime.wasm.WasmFrame
+import eth.krisbitney.wasmtime.wasm.ErrorFrame
 import wasmtime.*
 
 /**
@@ -10,7 +10,7 @@ import wasmtime.*
  * @property trap The C pointer to a [wasm_trap_t] struct.
  * @property message The trap message as a string.
  * @property trapCode The [TrapCode] enum value representing the type of trap that occurred, or `null` if the trap is not an instruction trap.
- * @property wasmTrace A list of [WasmFrame] instances representing the WebAssembly stack trace.
+ * @property wasmTrace A list of [ErrorFrame] instances representing the WebAssembly stack trace.
  *
  * @constructor Constructs a new [Trap] from the given [wasm_trap_t] pointer.
  * @param trap The C pointer to a [wasm_trap_t] struct.
@@ -41,13 +41,13 @@ class Trap(private val trap: CPointer<wasm_trap_t>) : Throwable() {
         }
     }
 
-    val wasmTrace: List<WasmFrame> by lazy {
+    val wasmTrace: List<ErrorFrame> by lazy {
         memScoped {
             val frameVec = alloc<wasm_frame_vec_t>()
             wasm_trap_trace(trap, frameVec.ptr)
 
             val frames = List(frameVec.size.toInt()) { index ->
-                WasmFrame(frameVec.data?.get(index)!!)
+                ErrorFrame(frameVec.data?.get(index)!!)
             }
 
             wasm_frame_vec_delete(frameVec.ptr)

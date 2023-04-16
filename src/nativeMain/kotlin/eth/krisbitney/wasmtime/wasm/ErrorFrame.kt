@@ -12,10 +12,10 @@ import wasmtime.*
  * @property funcName The name of the function this frame corresponds to, if available.
  * @property moduleName The name of the module this frame corresponds to, if available.
  *
- * @constructor Constructs a new [WasmFrame] from the given [wasm_frame_t] pointer.
+ * @constructor Constructs a new [ErrorFrame] from the given [wasm_frame_t] pointer.
  * @param frame The C pointer to a [wasm_frame_t] struct.
  */
-class WasmFrame(
+class ErrorFrame(
     val funcIndex: UInt,
     val funcOffset: ULong,
     val moduleOffset: ULong,

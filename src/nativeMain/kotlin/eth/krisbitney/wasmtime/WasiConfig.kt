@@ -87,16 +87,15 @@ class WasiConfig(val wasiConfig: CPointer<wasi_config_t>) : AutoCloseable {
      * @return This [WasiConfig] instance.
      */
     fun setStdinBytes(bytes: ByteArray): WasiConfig = this.apply {
-        memScoped {
-            val wasmBytes = alloc<wasm_byte_vec_t>()
-            wasmBytes.size = bytes.size.convert()
-            wasmBytes.data = bytes.usePinned { pinned ->
-                val ptr = allocArray<ByteVar>(bytes.size)
+        val wasmBytes = nativeHeap.alloc<wasm_byte_vec_t> {
+            size = bytes.size.convert()
+            data = bytes.usePinned { pinned ->
+                val ptr = nativeHeap.allocArray<ByteVar>(bytes.size)
                 memcpy(ptr, pinned.addressOf(0), bytes.size.convert())
                 ptr
             }
-            wasi_config_set_stdin_bytes(wasiConfig, wasmBytes.ptr)
         }
+        wasi_config_set_stdin_bytes(wasiConfig, wasmBytes.ptr)
     }
 
     /**

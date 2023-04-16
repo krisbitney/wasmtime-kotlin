@@ -1,6 +1,6 @@
 package eth.krisbitney.wasmtime
 
-import eth.krisbitney.wasmtime.wasm.WasmFrame
+import eth.krisbitney.wasmtime.wasm.ErrorFrame
 import kotlinx.cinterop.*
 import wasmtime.*
 
@@ -9,7 +9,7 @@ import wasmtime.*
  *
  * @property message The error message as a string.
  * @property exitStatus The WASI-specific exit status if the error is a WASI "exit" trap, or `null` if the error is not a WASI exit trap.
- * @property wasmTrace A list of [WasmFrame] instances representing the WebAssembly stack trace associated with the error.
+ * @property wasmTrace A list of [ErrorFrame] instances representing the WebAssembly stack trace associated with the error.
  *
  * @constructor Constructs a new [WasmtimeException] from the given [wasmtime_error_t] pointer.
  * @param error The C pointer to a [wasmtime_error_t] struct.
@@ -34,13 +34,13 @@ class WasmtimeException(private val error: CPointer<wasmtime_error_t>) : Throwab
         }
     }
 
-    val wasmTrace: List<WasmFrame> by lazy {
+    val wasmTrace: List<ErrorFrame> by lazy {
         memScoped {
             val frameVec = alloc<wasm_frame_vec_t>()
             wasmtime_error_wasm_trace(error, frameVec.ptr)
 
             val frames = List(frameVec.size.toInt()) { index ->
-                WasmFrame(frameVec.data?.get(index)!!)
+                ErrorFrame(frameVec.data?.get(index)!!)
             }
 
             wasm_frame_vec_delete(frameVec.ptr)
