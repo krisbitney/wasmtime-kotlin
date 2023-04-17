@@ -64,9 +64,3 @@ tasks.withType<Test> {
         this.showStandardStreams = true
     }
 }
-
-//tasks.named("compileKotlin", org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask::class.java) {
-//    compilerOptions {
-//        freeCompilerArgs.add("nowarn")
-//    }
-//}

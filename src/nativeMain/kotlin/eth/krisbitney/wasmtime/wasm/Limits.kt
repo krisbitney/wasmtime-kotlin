@@ -9,13 +9,13 @@ import wasmtime.wasm_limits_t
  * @property min The minimum value required.
  * @property max The maximum value required, or [LIMITS_MAX_DEFAULT] if no maximum is specified.
  *
- * @constructor Constructs a new [WasmLimits] instance with the given minimum and maximum values.
+ * @constructor Constructs a new [Limits] instance with the given minimum and maximum values.
  * @param min The minimum value required.
  * @param max The maximum value required, or [LIMITS_MAX_DEFAULT] if no maximum is specified.
  *
- * @companion object Contains utility methods and constants related to [WasmLimits].
+ * @companion object Contains utility methods and constants related to [Limits].
  */
-data class WasmLimits(val min: UInt = 0u, val max: UInt = LIMITS_MAX_DEFAULT) {
+data class Limits(val min: UInt = 0u, val max: UInt = LIMITS_MAX_DEFAULT) {
     companion object {
         /**
          * The default maximum value for limits in WebAssembly modules.
@@ -29,11 +29,11 @@ data class WasmLimits(val min: UInt = 0u, val max: UInt = LIMITS_MAX_DEFAULT) {
          * @param max The maximum value required, or [LIMITS_MAX_DEFAULT] if no maximum is specified.
          * @return A [wasm_limits_t] instance with the specified minimum and maximum values.
          */
-        fun allocateCValue(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): wasm_limits_t {
-            return cValue<wasm_limits_t> {
-                this.min = min
-                this.max = max
-            }.useContents { this }
+        fun allocateCValue(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): CPointer<wasm_limits_t> {
+            val cLimits = nativeHeap.alloc<wasm_limits_t>()
+            cLimits.min = min
+            cLimits.max = max
+            return cLimits.ptr
         }
     }
 }

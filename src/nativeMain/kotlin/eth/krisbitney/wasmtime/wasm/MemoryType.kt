@@ -9,21 +9,24 @@ import wasmtime.*
  * @property limits The memory limits associated with this memory type.
  *
  * @constructor Creates a new [MemoryType] instance with the given memory limits.
- * @param limits The [WasmLimits] defining the memory limits.
- *
- * @constructor Creates a new [MemoryType] instance from the given C pointer.
- * @param memoryType The C pointer to the `wasm_memorytype_t` struct.
- * @throws Error If there is a failure to get memory limits from the underlying `wasm_memorytype_t`.
+ * @param limits The [Limits] defining the memory limits, in units of WebAssembly pages (64 KiB).
  */
-class MemoryType(val limits: WasmLimits) : ExternType(ExternType.Kind.MEMORY) {
+class MemoryType(val limits: Limits) : ExternType(ExternType.Kind.MEMORY) {
 
-    constructor(memoryType: CPointer<wasm_memorytype_t>) : this(
+    /**
+     * Creates a new [MemoryType] instance from the given C pointer.
+     *
+     * @param memoryType The C pointer to the `wasm_memorytype_t` struct.
+     * @param ownedByCaller Whether the caller owns the memory type and is responsible for freeing it.
+     * @throws Error If there is a failure to get memory limits from the underlying `wasm_memorytype_t`.
+     */
+    constructor(memoryType: CPointer<wasm_memorytype_t>, ownedByCaller: Boolean = false) : this(
         memoryType.run {
             val ptr = wasm_memorytype_limits(memoryType) ?: throw Exception("failed to get memory limits")
-            WasmLimits(ptr.pointed.min, ptr.pointed.max)
+            Limits(ptr.pointed.min, ptr.pointed.max)
         }
     ) {
-        wasm_memorytype_delete(memoryType)
+        if (!ownedByCaller) wasm_memorytype_delete(memoryType)
     }
 
     /**
@@ -40,10 +43,10 @@ class MemoryType(val limits: WasmLimits) : ExternType(ExternType.Kind.MEMORY) {
          */
         fun allocateCValue(memoryType: MemoryType): CPointer<wasm_memorytype_t> {
             val limits = memoryType.limits
-            val cLimits = WasmLimits.allocateCValue(limits.min, limits.max)
-            val cMemoryType = wasm_memorytype_new(cLimits.ptr)
+            val cLimits = Limits.allocateCValue(limits.min, limits.max)
+            val cMemoryType = wasm_memorytype_new(cLimits)
+            nativeHeap.free(cLimits)
             if (cMemoryType == null) {
-                nativeHeap.free(cLimits.ptr)
                 throw Exception("failed to create memory type")
             }
             return cMemoryType

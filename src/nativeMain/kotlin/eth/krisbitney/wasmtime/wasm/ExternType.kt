@@ -15,7 +15,7 @@ sealed class ExternType(val kind: Kind) {
     companion object {
         /**
          * Constructs an [ExternType] subclass from a C pointer [externType] of type [wasm_externtype_t].
-         * The [externType] pointer is owned by the subclass pointer and will be deleted by the subclass.
+         * The [externType] pointer is owned by caller.
          *
          * @param externType The C pointer to a [wasm_externtype_t] object.
          * @return An [ExternType] subclass representing the external value type.
@@ -23,11 +23,20 @@ sealed class ExternType(val kind: Kind) {
         fun fromCValue(externType: CPointer<wasm_externtype_t>): ExternType {
             val kind = Kind.fromValue(wasm_externtype_kind(externType))
             return when (kind) {
-                Kind.FUNC -> FuncType(wasm_externtype_as_functype(externType)!!)
-                Kind.GLOBAL -> GlobalType(wasm_externtype_as_globaltype(externType)!!)
-                Kind.TABLE -> TableType(wasm_externtype_as_tabletype(externType)!!)
-                Kind.MEMORY -> MemoryType(wasm_externtype_as_memorytype(externType)!!)
+                Kind.FUNC -> FuncType(wasm_externtype_as_functype(externType)!!, true)
+                Kind.GLOBAL -> GlobalType(wasm_externtype_as_globaltype(externType)!!, true)
+                Kind.TABLE -> TableType(wasm_externtype_as_tabletype(externType)!!, true)
+                Kind.MEMORY -> MemoryType(wasm_externtype_as_memorytype(externType)!!, true)
             }
+        }
+
+        /**
+         * Calls the destructor for [wasm_externtype_t].
+         *
+         * @param externType The C pointer to a [wasm_externtype_t] object.
+         */
+        fun deleteCValue(externType: CPointer<wasm_externtype_t>) {
+            wasm_externtype_delete(externType)
         }
     }
 

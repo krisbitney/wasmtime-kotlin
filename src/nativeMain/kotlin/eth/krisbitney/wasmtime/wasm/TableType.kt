@@ -8,27 +8,30 @@ import wasmtime.*
  * element type and the limits of the table.
  *
  * @property element The [ValType.Kind] describing the element type of the table.
- * @property limits The [WasmLimits] describing the minimum and maximum size of the table.
- *
- * @constructor Constructs a new [TableType] instance from a C pointer to a `wasm_tabletype_t`.
- * @param tableType The C pointer to the `wasm_tabletype_t`.
- * @throws RuntimeException If the element type retrieval fails.
- * @throws Error If the table type limits retrieval fails.
+ * @property limits The [Limits] describing the minimum and maximum size of the table.
  */
 class TableType(
     val element: ValType.Kind,
-    val limits: WasmLimits
+    val limits: Limits
 ) : ExternType(ExternType.Kind.TABLE) {
 
-    constructor(tableType: CPointer<wasm_tabletype_t>) : this(
+    /**
+     * Constructs a new [TableType] instance from a C pointer to a `wasm_tabletype_t`.
+     *
+     * @param tableType The C pointer to the `wasm_tabletype_t`.
+     * @param ownedByCaller Whether the caller owns the `wasm_tabletype_t` and is responsible for freeing it.
+     * @throws RuntimeException If the element type retrieval fails.
+     * @throws Exception If the table type limits retrieval fails.
+     */
+    constructor(tableType: CPointer<wasm_tabletype_t>, ownedByCaller: Boolean = false) : this(
         wasm_tabletype_element(tableType)?.let {
             ValType.kindFromCValue(it)
         } ?: throw RuntimeException("failed to get table type element"),
         wasm_tabletype_limits(tableType)?.let {
-            WasmLimits(it.pointed.min, it.pointed.max)
+            Limits(it.pointed.min, it.pointed.max)
         } ?: throw Exception("failed to get table type limits")
     ) {
-        wasm_tabletype_delete(tableType)
+        if (!ownedByCaller) wasm_tabletype_delete(tableType)
     }
 
     /**
@@ -45,7 +48,7 @@ class TableType(
          */
         fun allocateCValue(tableType: TableType): CPointer<wasm_tabletype_t> {
             val cElement = ValType.allocateCValue(tableType.element)
-            val cLimits = WasmLimits.allocateCValue(tableType.limits.min, tableType.limits.max).ptr
+            val cLimits = Limits.allocateCValue(tableType.limits.min, tableType.limits.max)
             val cTableType = wasm_tabletype_new(cElement, cLimits)
             nativeHeap.free(cLimits)
             if (cTableType == null) {

@@ -10,17 +10,20 @@ import wasmtime.*
  *
  * @property content The [ValType.Kind] describing the content type of the global variable.
  * @property mutability The [Mutability] describing whether the global variable is mutable or immutable.
- *
- * @constructor Constructs a new [GlobalType] instance from a C pointer to a `wasm_globaltype_t`.
- * @param globalType The C pointer to the `wasm_globaltype_t`.
- * @throws RuntimeException If the content type or mutability retrieval fails.
  */
 class GlobalType(
     val content: ValType.Kind,
     val mutability: Mutability
 ) : ExternType(ExternType.Kind.GLOBAL) {
 
-    constructor(globalType: CPointer<wasm_globaltype_t>) : this(
+    /**
+     * Constructs a new [GlobalType] instance from a C pointer to a `wasm_globaltype_t`.
+     *
+     * @param globalType The C pointer to the `wasm_globaltype_t`.
+     * @param ownedByCaller Whether the caller owns the `wasm_globaltype_t` and is responsible for deleting it.
+     * @throws RuntimeException If the content type or mutability retrieval fails.
+     */
+    constructor(globalType: CPointer<wasm_globaltype_t>, ownedByCaller: Boolean = false) : this(
         globalType.let {
             val result = wasm_globaltype_content(globalType)  ?: throw RuntimeException("Unable to get globaltype content")
             ValType.kindFromCValue(result)
@@ -30,7 +33,7 @@ class GlobalType(
             Mutability.fromValue(result) ?: throw RuntimeException("Unable to get globaltype mutability")
         }
     ) {
-        wasm_globaltype_delete(globalType)
+        if (!ownedByCaller) wasm_globaltype_delete(globalType)
     }
 
     /**
