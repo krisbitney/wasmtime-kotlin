@@ -92,7 +92,7 @@ data class Val(val kind: Kind, val value: Any) {
      */
     val i32: Int
         get() {
-            require(kind == Kind.I32) { "Value is not i32" }
+            if(kind != Kind.I32) throw IllegalStateException("Value is not i32")
             return value as Int
         }
 
@@ -103,7 +103,7 @@ data class Val(val kind: Kind, val value: Any) {
      */
     val i64: Long
         get() {
-            require(kind == Kind.I64) { "Value is not i64" }
+            if (kind != Kind.I64) throw IllegalStateException("Value is not i64")
             return value as Long
         }
 
@@ -114,7 +114,7 @@ data class Val(val kind: Kind, val value: Any) {
      */
     val f32: Float
         get() {
-            require(kind == Kind.F32) { "Value is not f32" }
+            if (kind != Kind.F32) throw IllegalStateException("Value is not f32")
             return value as Float
         }
 
@@ -125,7 +125,7 @@ data class Val(val kind: Kind, val value: Any) {
      */
     val f64: Double
         get() {
-            require(kind == Kind.F64) { "Value is not f64" }
+            if (kind != Kind.F64) throw IllegalStateException("Value is not f64")
             return value as Double
         }
 
@@ -135,10 +135,11 @@ data class Val(val kind: Kind, val value: Any) {
      * @property v128 The `v128` value contained in this [Val].
      * @throws IllegalStateException If the [kind] is not [Kind.V128].
      */
+    @Suppress("UNCHECKED_CAST")
     val v128: wasmtime_v128
         get() {
-            require(kind == Kind.V128) { "Value is not v128" }
-            return value as wasmtime_v128
+            if (kind != Kind.V128) throw IllegalStateException("Value is not v128")
+            return value as? wasmtime_v128 ?: throw IllegalStateException("Value is not v128")
         }
 
     /**
@@ -147,10 +148,11 @@ data class Val(val kind: Kind, val value: Any) {
      * @property funcref The function reference (`CPointer<wasmtime_func_t>`) value contained in this [Val].
      * @throws IllegalStateException If the [kind] is not [Kind.FUNCREF].
      */
+    @Suppress("UNCHECKED_CAST")
     val funcref: CPointer<wasmtime_func_t>
         get() {
-            require(kind == Kind.FUNCREF) { "Value is not funcref" }
-            return value as CPointer<wasmtime_func_t>
+            if (kind != Kind.FUNCREF) throw IllegalStateException("Value is not funcref")
+            return value as? CPointer<wasmtime_func_t> ?: throw IllegalStateException("Value is not funcref")
         }
 
     /**
@@ -161,7 +163,7 @@ data class Val(val kind: Kind, val value: Any) {
      */
     val externref: ExternRef<*>
         get() {
-            require(kind == Kind.EXTERNREF) { "Value is not externref" }
+            if (kind != Kind.EXTERNREF) throw IllegalStateException("Value is not externref")
             return value as ExternRef<*>
         }
 
@@ -222,6 +224,7 @@ data class Val(val kind: Kind, val value: Any) {
          * @param value A [Val] instance representing a wasm value.
          * @return A C pointer to a newly allocated [wasmtime_val_t] struct representing the wasm value.
          */
+        @Suppress("UNCHECKED_CAST")
         fun allocateCValue(value: Val): CPointer<wasmtime_val_t> {
             return when (value.kind) {
                 Val.Kind.I32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
@@ -242,11 +245,11 @@ data class Val(val kind: Kind, val value: Any) {
                 }.ptr
                 Val.Kind.V128 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_V128.toUByte()
-                    memcpy(of.v128, value.value as wasmtime_v128, 16)
+                    memcpy(of.v128, value.value as? wasmtime_v128 ?: throw IllegalStateException("Value kind does not match value type"), 16)
                 }.ptr
                 Val.Kind.FUNCREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_FUNCREF.toUByte()
-                    memcpy(of.funcref.ptr, value.value as CPointer<wasmtime_func_t>, sizeOf<wasmtime_func_t>().toULong())
+                    memcpy(of.funcref.ptr, value.value as? CPointer<wasmtime_func_t> ?: throw IllegalStateException("Value kind does not match value type"), sizeOf<wasmtime_func_t>().toULong())
                 }.ptr
                 Val.Kind.EXTERNREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_EXTERNREF.toUByte()
@@ -256,7 +259,7 @@ data class Val(val kind: Kind, val value: Any) {
         }
 
         /**
-         * Copies a [wasmtime_val_t] C pointer, creating a new [wasmtime_val_t] C pointer with the same contents.
+         * Copies a [wasmtime_val_t], creating a new [wasmtime_val_t] C value with the same contents.
          *
          * @param wasmtimeVal A C pointer to a [wasmtime_val_t] struct.
          * @return A C pointer to a newly allocated [wasmtime_val_t] struct containing the same wasm value.
