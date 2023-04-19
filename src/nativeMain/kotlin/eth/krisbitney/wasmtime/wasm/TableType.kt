@@ -10,7 +10,7 @@ import wasmtime.*
  * @property element The [ValType.Kind] describing the element type of the table.
  * @property limits The [Limits] describing the minimum and maximum size of the table.
  */
-class TableType(
+data class TableType(
     val element: ValType.Kind,
     val limits: Limits
 ) : ExternType(ExternType.Kind.TABLE) {

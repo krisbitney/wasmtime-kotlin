@@ -14,27 +14,7 @@ import wasmtime.*
  * @constructor Creates an [ExternRef] instance from the given [externRef] C pointer.
  */
 @OptIn(ExperimentalStdlibApi::class)
-class ExternRef<T>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseable {
-
-    /**
-     * Creates an [ExternRef] instance from a raw value and a [Context].
-     *
-     * @param context A [Context] instance to be used to create the extern reference.
-     * @param raw A raw value of type [size_t] representing the extern reference.
-     * @throws Exception If the creation of the [ExternRef] instance fails.
-     */
-    constructor(context: Context<*>, raw: size_t) :
-            this(wasmtime_externref_from_raw(context.context, raw) ?: throw Exception("failed to create ExternRef from raw"))
-
-    /**
-     * Creates an [ExternRef] instance from a nullable [data] pointer and an optional [finalizer].
-     *
-     * @param data A nullable [COpaquePointer] representing the data to be wrapped by the extern reference.
-     * @param finalizer An optional [CPointer] to a finalizer function for the wrapped data.
-     * @throws Exception If the creation of the [ExternRef] instance fails.
-     */
-    constructor(data: COpaquePointer?, finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>>?) :
-            this(wasmtime_externref_new(data, finalizer) ?: throw Exception("failed to create ExternRef"))
+class ExternRef<T: Any>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseable {
 
     /**
      * Creates an [ExternRef] instance from a nullable [data] of type [T].
@@ -42,7 +22,7 @@ class ExternRef<T>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseabl
      * @param data A nullable instance of type [T] to be wrapped by the extern reference.
      * @throws Exception If the creation of the [ExternRef] instance fails.
      */
-    constructor(data: T) :
+    constructor(data: T?) :
             this(
                 if (data != null) {
                     val dataPtr: COpaquePointer = StableRef.create(data).asCPointer()
@@ -60,12 +40,7 @@ class ExternRef<T>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseabl
      *
      * @return A nullable instance of type [T] representing the wrapped data.
      */
-    inline fun <reified T: Any> data(): T? {
-        val ref = wasmtime_externref_data(externRef)?.asStableRef<T>()
-        val data = ref?.get()
-        ref?.dispose()
-        return data
-    }
+    inline fun <reified T: Any> data(): T? = wasmtime_externref_data(externRef)?.asStableRef<T>()?.get()
 
     /**
      * Clones the extern reference, creating a new [ExternRef] instance with the same wrapped data.
@@ -99,7 +74,7 @@ class ExternRef<T>(val externRef: CPointer<wasmtime_externref_t>) : AutoCloseabl
      * @param raw A raw value of type [size_t] representing the extern reference.
      * @return A new [ExternRef] instance representing the created extern reference.
      */
-        inline fun <reified T>fromRaw(context: Context<*>, raw: size_t): ExternRef<T> {
+        inline fun <reified T: Any>fromRaw(context: Context<*>, raw: size_t): ExternRef<T> {
             val externRef = wasmtime_externref_from_raw(context.context, raw) ?: throw Exception("failed to create ExternRef from raw")
             return ExternRef(externRef)
         }

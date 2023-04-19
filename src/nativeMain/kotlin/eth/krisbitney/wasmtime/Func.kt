@@ -37,7 +37,7 @@ class Func(
      * Lazily retrieves the [FuncType] of the WebAssembly function.
      */
     val type: FuncType by lazy {
-        val ptr = wasmtime_func_type(store, func) ?: throw Exception("failed to get function type")
+        val ptr = wasmtime_func_type(this.store, func) ?: throw Exception("failed to get function type")
         FuncType(ptr)
     }
 

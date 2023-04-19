@@ -1,7 +1,6 @@
 package eth.krisbitney.wasmtime.wasm
 
-import eth.krisbitney.wasmtime.ExternRef
-import eth.krisbitney.wasmtime.Val
+import eth.krisbitney.wasmtime.*
 import kotlinx.cinterop.*
 import wasmtime.*
 
@@ -103,14 +102,14 @@ sealed class ValType<T : Any>(val kind: Kind) {
     /**
      * A [ValType] representing a WebAssembly function reference.
      */
-    class FuncRef() : ValType<CPointer<wasmtime_func_t>>(Kind.FUNCREF) {
+    class FuncRefType() : ValType<FuncRef>(Kind.FUNCREF) {
         /**
-         * Converts a [Val] instance into a [CPointer]<[wasmtime_func_t]> representing a WebAssembly function reference.
+         * Converts a [Val] instance into a [FuncRef] representing a WebAssembly function reference.
          *
          * @param value The [Val] to convert.
-         * @return The converted [CPointer]<[wasmtime_func_t]>.
+         * @return The converted [FuncRef].
          */
-        override fun fromVal(value: Val): CPointer<wasmtime_func_t> {
+        override fun fromVal(value: Val): FuncRef {
             return value.funcref
         }
     }
@@ -133,7 +132,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
                 Kind.F32 -> F32()
                 Kind.F64 -> F64()
                 Kind.ANYREF -> AnyRef()
-                Kind.FUNCREF -> FuncRef()
+                Kind.FUNCREF -> FuncRefType()
             }
         }
 
@@ -151,7 +150,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
                 Kind.F32 -> F32()
                 Kind.F64 -> F64()
                 Kind.ANYREF -> AnyRef()
-                Kind.FUNCREF -> FuncRef()
+                Kind.FUNCREF -> FuncRefType()
             }
         }
 

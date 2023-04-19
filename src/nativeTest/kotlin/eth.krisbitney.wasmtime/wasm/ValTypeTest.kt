@@ -26,7 +26,7 @@ class ValTypeTest {
         assertTrue(ValType.fromKind(ValType.Kind.F32) is ValType.F32)
         assertTrue(ValType.fromKind(ValType.Kind.F64) is ValType.F64)
         assertTrue(ValType.fromKind(ValType.Kind.ANYREF) is ValType.AnyRef)
-        assertTrue(ValType.fromKind(ValType.Kind.FUNCREF) is ValType.FuncRef)
+        assertTrue(ValType.fromKind(ValType.Kind.FUNCREF) is ValType.FuncRefType)
     }
 
     @Test
@@ -79,7 +79,7 @@ class ValTypeTest {
         assertTrue(ValType.fromCValue(f32CValue) is ValType.F32)
         assertTrue(ValType.fromCValue(f64CValue) is ValType.F64)
         assertTrue(ValType.fromCValue(anyRefCValue) is ValType.AnyRef)
-        assertTrue(ValType.fromCValue(funcRefCValue) is ValType.FuncRef)
+        assertTrue(ValType.fromCValue(funcRefCValue) is ValType.FuncRefType)
 
         ValType.deleteCValue(i32CValue)
         ValType.deleteCValue(i64CValue)

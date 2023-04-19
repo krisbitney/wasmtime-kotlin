@@ -5,7 +5,7 @@ import platform.posix.memcpy
 import wasmtime.*
 
 sealed class Extern(
-    protected val store: CPointer<wasmtime_context_t>,
+    val store: CPointer<wasmtime_context_t>,
     val kind: Kind,
 ) {
 

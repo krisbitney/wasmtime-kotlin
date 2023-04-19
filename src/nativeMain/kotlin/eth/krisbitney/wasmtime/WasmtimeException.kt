@@ -13,8 +13,9 @@ import wasmtime.*
  *
  * @constructor Constructs a new [WasmtimeException] from the given [wasmtime_error_t] pointer.
  * @param error The C pointer to a [wasmtime_error_t] struct.
+ * @param ownedByCaller If `true`, the [error] pointer is owned by the caller and will not be deleted by this class.
  */
-class WasmtimeException(private val error: CPointer<wasmtime_error_t>) : Throwable() {
+class WasmtimeException(private val error: CPointer<wasmtime_error_t>, ownedByCaller: Boolean = false) : Throwable() {
 
     override val message: String by lazy {
         memScoped {
@@ -50,6 +51,8 @@ class WasmtimeException(private val error: CPointer<wasmtime_error_t>) : Throwab
     }
 
     init {
-        wasmtime_error_delete(error)
+        if (!ownedByCaller) {
+            wasmtime_error_delete(error)
+        }
     }
 }

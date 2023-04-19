@@ -32,13 +32,14 @@ class ValTest {
         assertEquals(Val.Kind.V128, v128Val.kind)
         assertEquals(mockWasmtimeV128, v128Val.value)
 
+        // TODO: Figure out how to mock wasmtime_funcref_t
 //        val funcrefVal = Val(mockWasmtimeFuncT)
 //        assertEquals(Val.Kind.FUNCREF, funcrefVal.kind)
 //        assertEquals(mockWasmtimeFuncT, funcrefVal.value)
 
-//        val externrefVal = Val(mockExternRef)
-//        assertEquals(Val.Kind.EXTERNREF, externrefVal.kind)
-//        assertEquals(mockExternRef, externrefVal.value)
+        val externrefVal = Val(ExternRef(42))
+        assertEquals(Val.Kind.EXTERNREF, externrefVal.kind)
+        assertEquals(42, externrefVal.externref.data<Int>())
     }
 
     @Test
@@ -47,7 +48,7 @@ class ValTest {
         assertFailsWith<IllegalArgumentException> { Val(ValType.I64(), 123) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.F32(), 123.0) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.F64(), 123.0f) }
-        assertFailsWith<IllegalArgumentException> { Val(ValType.FuncRef(), 123) }
+        assertFailsWith<IllegalArgumentException> { Val(ValType.FuncRefType(), 123) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.AnyRef(), 123) }
     }
 
@@ -57,7 +58,7 @@ class ValTest {
         assertFailsWith<IllegalArgumentException> { Val(ValType.I64(), 123) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.F32(), 123.0) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.F64(), 123.0f) }
-        assertFailsWith<IllegalArgumentException> { Val(ValType.FuncRef(), 123) }
+        assertFailsWith<IllegalArgumentException> { Val(ValType.FuncRefType(), 123) }
         assertFailsWith<IllegalArgumentException> { Val(ValType.AnyRef(), 123) }
     }
 
@@ -127,7 +128,22 @@ class ValTest {
         assertEquals(wasmtimeVal.of.v128, value.v128)
     }
 
-    // TODO add fromCValue tests for externref and funcref
+    @Test
+    fun testFromCValueExternRef() = memScoped {
+        val mockWasmtimeExternRef = ExternRef(42)
+
+        val wasmtimeVal = alloc<wasmtime_val_t>()
+        wasmtimeVal.kind = WASMTIME_EXTERNREF.toUByte()
+        wasmtimeVal.of.externref = mockWasmtimeExternRef.externRef
+
+        val value = Val.fromCValue(wasmtimeVal.ptr)
+        assertEquals(Val.Kind.EXTERNREF, value.kind)
+        assertEquals(wasmtimeVal.of.externref, value.externref.externRef)
+
+        mockWasmtimeExternRef.close()
+    }
+
+    // TODO add fromCValue test for funcref
 
     @Test
     fun testKindFromCValue() {
@@ -152,6 +168,7 @@ class ValTest {
         val wasmtimeVal = Val.allocateCValue(value)
         assertEquals(WASMTIME_I32.toUByte(), wasmtimeVal.pointed.kind)
         assertEquals(42, wasmtimeVal.pointed.of.i32)
+        Val.deleteCValue(wasmtimeVal)
     }
 
     @Test
@@ -160,6 +177,7 @@ class ValTest {
         val wasmtimeVal = Val.allocateCValue(value)
         assertEquals(WASMTIME_I64.toUByte(), wasmtimeVal.pointed.kind)
         assertEquals(42L, wasmtimeVal.pointed.of.i64)
+        Val.deleteCValue(wasmtimeVal)
     }
 
     @Test
@@ -168,6 +186,7 @@ class ValTest {
         val wasmtimeVal = Val.allocateCValue(value)
         assertEquals(WASMTIME_F32.toUByte(), wasmtimeVal.pointed.kind)
         assertEquals(42.0f, wasmtimeVal.pointed.of.f32)
+        Val.deleteCValue(wasmtimeVal)
     }
 
     @Test
@@ -176,8 +195,29 @@ class ValTest {
         val wasmtimeVal = Val.allocateCValue(value)
         assertEquals(WASMTIME_F64.toUByte(), wasmtimeVal.pointed.kind)
         assertEquals(42.0, wasmtimeVal.pointed.of.f64)
+        Val.deleteCValue(wasmtimeVal)
     }
-    // TODO add allocateCValue tests for other externref and funcref
+
+    @Test
+    fun testAllocateCValueV128() = memScoped {
+        val v128: wasmtime_v128 = allocArray<UByteVar>(16)
+        v128.pointed.value = 0x42u
+        val value = Val(Val.Kind.V128, v128)
+        val wasmtimeVal = Val.allocateCValue(value)
+        assertEquals(WASMTIME_V128.toUByte(), wasmtimeVal.pointed.kind)
+        assertEquals(v128.pointed.value, wasmtimeVal.pointed.of.v128.pointed.value)
+    }
+
+    @Test
+    fun testAllocateCValueExternRef() {
+        val value = Val(Val.Kind.EXTERNREF, ExternRef(42))
+        val wasmtimeVal = Val.allocateCValue(value)
+        assertEquals(WASMTIME_EXTERNREF.toUByte(), wasmtimeVal.pointed.kind)
+        assertEquals(value.externref.externRef, wasmtimeVal.pointed.of.externref)
+        Val.deleteCValue(wasmtimeVal)
+    }
+
+    // TODO add allocateCValue test for funcref
 
     @Test
     fun testCopyCVal() {

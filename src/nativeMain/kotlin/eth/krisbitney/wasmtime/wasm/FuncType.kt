@@ -11,7 +11,7 @@ import wasmtime.*
  * @property params An array of [ValType] representing the parameter types of the function.
  * @property results An array of [ValType] representing the result types of the function.
  */
-class FuncType(
+data class FuncType(
     val params: Array<ValType<*>>,
     val results: Array<ValType<*>>
 ) : ExternType(ExternType.Kind.FUNC) {
@@ -91,5 +91,21 @@ class FuncType(
         fun deleteCValue(funcType: CPointer<wasm_functype_t>) {
             wasm_functype_delete(funcType)
         }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !== null && this::class != other::class) return false
+
+        other as FuncType
+
+        if (!params.contentEquals(other.params)) return false
+        return results.contentEquals(other.results)
+    }
+
+    override fun hashCode(): Int {
+        var result = params.contentHashCode()
+        result = 31 * result + results.contentHashCode()
+        return result
     }
 }

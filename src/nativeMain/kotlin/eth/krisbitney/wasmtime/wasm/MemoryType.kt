@@ -6,12 +6,9 @@ import wasmtime.*
 /**
  * Represents a WebAssembly memory type.
  *
- * @property limits The memory limits associated with this memory type.
- *
- * @constructor Creates a new [MemoryType] instance with the given memory limits.
- * @param limits The [Limits] defining the memory limits, in units of WebAssembly pages (64 KiB).
+ * @property limits The memory limits associated with this memory type, in units of WebAssembly pages (64 KiB).
  */
-class MemoryType(val limits: Limits) : ExternType(ExternType.Kind.MEMORY) {
+data class MemoryType(val limits: Limits) : ExternType(ExternType.Kind.MEMORY) {
 
     /**
      * Creates a new [MemoryType] instance from the given C pointer.

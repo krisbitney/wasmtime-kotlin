@@ -49,11 +49,11 @@ data class Val(val kind: Kind, val value: Any) {
     constructor(value: wasmtime_v128) : this(Kind.V128, value)
 
     /**
-     * Creates a [Val] instance representing a `funcref` WebAssembly value.
+     * Creates a [Val] instance representing a [FuncRef] WebAssembly value.
      *
-     * @param value The `CPointer<wasmtime_func_t>` value to store.
+     * @param value The [FuncRef] value to store.
      */
-    constructor(value: CPointer<wasmtime_func_t>) : this(Kind.FUNCREF, value)
+    constructor(value: FuncRef) : this(Kind.FUNCREF, value)
 
     /**
      * Creates a [Val] instance representing an `externref` WebAssembly value.
@@ -78,7 +78,7 @@ data class Val(val kind: Kind, val value: Any) {
             throw IllegalArgumentException("Expected Float for F32")
         } else if (valType is ValType.F64 && value !is Double) {
             throw IllegalArgumentException("Expected Double for F64")
-        } else if (valType is ValType.FuncRef && value !is CPointer<*>) {
+        } else if (valType is ValType.FuncRefType && value !is CPointer<*>) {
             throw IllegalArgumentException("Expected CPointer<wasmtime_func_t> for FuncRef")
         } else if (valType is ValType.AnyRef && value !is ExternRef<*>) {
             throw IllegalArgumentException("Expected ExternRef<*> for AnyRef")
@@ -145,14 +145,13 @@ data class Val(val kind: Kind, val value: Any) {
     /**
      * Retrieves the function reference value from this [Val] instance.
      *
-     * @property funcref The function reference (`CPointer<wasmtime_func_t>`) value contained in this [Val].
+     * @property funcref The [FuncRef] value contained in this [Val].
      * @throws IllegalStateException If the [kind] is not [Kind.FUNCREF].
      */
-    @Suppress("UNCHECKED_CAST")
-    val funcref: CPointer<wasmtime_func_t>
+    val funcref: FuncRef
         get() {
             if (kind != Kind.FUNCREF) throw IllegalStateException("Value is not funcref")
-            return value as? CPointer<wasmtime_func_t> ?: throw IllegalStateException("Value is not funcref")
+            return value as FuncRef
         }
 
     /**
@@ -185,7 +184,7 @@ data class Val(val kind: Kind, val value: Any) {
                 WASMTIME_F32 -> Val(value.pointed.of.f32)
                 WASMTIME_F64 -> Val(value.pointed.of.f64)
                 WASMTIME_V128 -> Val(value.pointed.of.v128)
-                WASMTIME_FUNCREF -> Val(value.pointed.of.funcref.ptr)
+                WASMTIME_FUNCREF -> Val(FuncRef(value.pointed.of.funcref.ptr))
                 WASMTIME_EXTERNREF -> Val(ExternRef<Any>(value.pointed.of.externref!!))
                 else -> throw IllegalArgumentException("Invalid WasmtimeValKind value: ${value.pointed.kind}")
             }
@@ -203,14 +202,13 @@ data class Val(val kind: Kind, val value: Any) {
         }
 
         /**
-         * Deletes a [wasmtime_val_t] C pointer, freeing any resources associated with it.
+         * Deletes a [wasmtime_val_t] value, freeing its memory.
+         * Does not free the memory of an [ExternRef] value contained in the [wasmtime_val_t].
          *
          * @param wasmtimeVal A C pointer to a [wasmtime_val_t] struct.
          */
         fun deleteCValue(wasmtimeVal: CPointer<wasmtime_val_t>) {
-            if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_EXTERNREF) {
-                wasmtime_externref_delete(wasmtimeVal.pointed.of.externref)
-            } else if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_FUNCREF) {
+            if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_FUNCREF) {
                 nativeHeap.free(wasmtimeVal.pointed.of.funcref)
             } else if (wasmtimeVal.pointed.kind.toInt() == WASMTIME_V128) {
                 nativeHeap.free(wasmtimeVal.pointed.of.v128)
@@ -224,36 +222,35 @@ data class Val(val kind: Kind, val value: Any) {
          * @param value A [Val] instance representing a wasm value.
          * @return A C pointer to a newly allocated [wasmtime_val_t] struct representing the wasm value.
          */
-        @Suppress("UNCHECKED_CAST")
         fun allocateCValue(value: Val): CPointer<wasmtime_val_t> {
             return when (value.kind) {
                 Val.Kind.I32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_I32.toUByte()
-                    of.i32 = value.value as Int
+                    of.i32 = value.i32
                 }.ptr
                 Val.Kind.I64 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_I64.toUByte()
-                    of.i64 = value.value as Long
+                    of.i64 = value.i64
                 }.ptr
                 Val.Kind.F32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_F32.toUByte()
-                    of.f32 = value.value as Float
+                    of.f32 = value.f32
                 }.ptr
                 Val.Kind.F64 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_F64.toUByte()
-                    of.f64 = value.value as Double
+                    of.f64 = value.f64
                 }.ptr
                 Val.Kind.V128 -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_V128.toUByte()
-                    memcpy(of.v128, value.value as? wasmtime_v128 ?: throw IllegalStateException("Value kind does not match value type"), 16)
+                    memcpy(of.v128, value.v128, 16)
                 }.ptr
                 Val.Kind.FUNCREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_FUNCREF.toUByte()
-                    memcpy(of.funcref.ptr, value.value as? CPointer<wasmtime_func_t> ?: throw IllegalStateException("Value kind does not match value type"), sizeOf<wasmtime_func_t>().toULong())
+                    memcpy(of.funcref.ptr, value.funcref.funcref, sizeOf<wasmtime_func_t>().toULong())
                 }.ptr
                 Val.Kind.EXTERNREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
                     kind = WASMTIME_EXTERNREF.toUByte()
-                    of.externref = (value.value as ExternRef<*>).externRef
+                    of.externref = value.externref.externRef
                 }.ptr
             }
         }

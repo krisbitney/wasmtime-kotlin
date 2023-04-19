@@ -13,7 +13,7 @@ import wasmtime.*
  * @param name The name of the exported item.
  * @param type The [ExternType] of the exported item.
  */
-class ExportType(val name: String, val type: ExternType) {
+data class ExportType(val name: String, val type: ExternType) {
 
     /**
      * Creates a new [ExportType] instance from the given C pointer to a `wasm_exporttype_t` struct.

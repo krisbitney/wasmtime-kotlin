@@ -14,7 +14,7 @@ import wasmtime.*
  * @note The `module`, `name`, and `externType` properties should not be manually deallocated as
  * they are owned by the `wasm_importtype_t` struct.
  */
-class ImportType(
+data class ImportType(
     val module: String,
     val name: String,
     val type: ExternType

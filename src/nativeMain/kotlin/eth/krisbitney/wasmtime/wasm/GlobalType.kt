@@ -11,7 +11,7 @@ import wasmtime.*
  * @property content The [ValType.Kind] describing the content type of the global variable.
  * @property mutability The [Mutability] describing whether the global variable is mutable or immutable.
  */
-class GlobalType(
+data class GlobalType(
     val content: ValType.Kind,
     val mutability: Mutability
 ) : ExternType(ExternType.Kind.GLOBAL) {
