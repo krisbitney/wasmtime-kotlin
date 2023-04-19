@@ -70,7 +70,6 @@ class Func(
                 this.ptr
             )
             FuncType.deleteCValue(cFuncType)
-            callbackRef.dispose()
         }.ptr
     )
 
@@ -79,25 +78,29 @@ class Func(
      *
      * @param args A list of [Val] arguments to pass to the function. Defaults to `null`.
      * @return A list of [Val] representing the results of the function call.
-     * @throws IllegalStateException If the number of provided arguments does not match the function's parameter types.
-     * @throws WasmtimeException If an error occurs during the function call due to programmer error (e.g., wrong argument types or wrong store).
+     * @throws IllegalArgumentException If the number of provided arguments does not match the number of function parameter types.
+     * @throws WasmtimeException If an error occurs during the function call due to user error (e.g., wrong argument types or wrong store).
      * @throws Trap If a WebAssembly trap occurs during the function execution.
      */
     fun call(args: List<Val>? = null): List<Val> = memScoped {
         val paramTypes = type.params
         val resultTypes = type.results
 
-        val argsSize = args?.size ?: 0
-        require((argsSize) == paramTypes.size) {
-            "expected ${paramTypes.size} arguments, got $argsSize"
+        val nargs = args?.size ?: 0
+        require((nargs) == paramTypes.size) {
+            "expected ${paramTypes.size} arguments, got $nargs"
         }
 
-        val cParams: CArrayPointer<wasmtime_val_t>? = args?.run {
-            this.map { Val.allocateCValue(it) }.toCValues().ptr.reinterpret()
+        val cParams: CArrayPointer<wasmtime_val_t> = allocArray(nargs)
+        args?.forEachIndexed { i, arg ->
+            val cArg = Val.allocateCValue(arg)
+            memcpy(cParams[i].ptr, cArg, sizeOf<wasmtime_val_t>().convert())
+            Val.deleteCValue(cArg)
         }
+
         val cResults: CArrayPointer<wasmtime_val_t> = allocArray(resultTypes.size)
 
-        val trap = alloc<CPointerVar<wasm_trap_t>>()
+        val trap = allocPointerTo<wasm_trap_t>()
         val error = wasmtime_func_call(
             store,
             func,
@@ -107,7 +110,6 @@ class Func(
             resultTypes.size.convert(),
             trap.ptr
         )
-        cParams?.let { nativeHeap.free(cParams) }
 
         if (error != null) {
             throw WasmtimeException(error)
@@ -180,14 +182,13 @@ fun cFuncCallback(
     val callbackResult: Result<List<Val>> = fn(caller, args)
     if (callbackResult.isSuccess) {
         val results = callbackResult.getOrThrow()
-        var ptr: CPointer<wasmtime_val_t> = cResults!!
-        val wasmtimeValSize = sizeOf<wasmtime_val_t>()
-        for (i in 0 until nresults.toInt()) {
-            val cVal = Val.allocateCValue(results[i])
-            memcpy(cResults, cVal, wasmtimeValSize.convert())
-            Val.deleteCValue(cVal)
-            ptr = interpretCPointer(ptr.rawValue + wasmtimeValSize)
-                ?: throw Exception("failed to offset c pointer")
+        cResults?.let {
+            val wasmtimeValSize = sizeOf<wasmtime_val_t>()
+            for (i in 0 until nresults.toInt()) {
+                val cVal = Val.allocateCValue(results[i])
+                memcpy(cResults[i].ptr, cVal, wasmtimeValSize.convert())
+                Val.deleteCValue(cVal)
+            }
         }
         return null
     } else {

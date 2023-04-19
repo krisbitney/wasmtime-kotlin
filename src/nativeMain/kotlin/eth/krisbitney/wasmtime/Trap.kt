@@ -22,22 +22,22 @@ class Trap(private val trap: CPointer<wasm_trap_t>) : Throwable() {
 
     constructor(message: String) : this(wasmtime_trap_new(message, message.length.convert()) ?: throw Exception("failed to create trap"))
 
-    override val message by lazy {
-        memScoped {
-            val msg = alloc<wasm_message_t>()
-            wasm_trap_message(trap, msg.ptr)
-            msg.data?.toKString() + " (code: ${trapCode?.name})"
+    override val message = memScoped {
+        val msg = alloc<wasm_message_t>()
+        wasm_trap_message(trap, msg.ptr)
+        var result = msg.data?.toKString()
+        if (trapCode != null) {
+            result += " (code: ${trapCode?.name})"
         }
+        result
     }
 
     val trapCode: TrapCode? by lazy {
-        memScoped {
-            val code = alloc<wasmtime_trap_code_tVar>()
-            if (wasmtime_trap_code(trap, code.ptr)) {
-                TrapCode.fromValue(code.value)
-            } else {
-                null
-            }
+        val code = nativeHeap.alloc<wasmtime_trap_code_tVar>()
+        if (wasmtime_trap_code(trap, code.ptr)) {
+            TrapCode.fromValue(code.value)
+        } else {
+            null
         }
     }
 

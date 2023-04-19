@@ -37,11 +37,11 @@ kotlin {
                 }
             }
         }
-        binaries {
-            sharedLib {
-                baseName = "wasmtime_kt"
-            }
-        }
+//        binaries {
+//            sharedLib {
+//                baseName = "wasmtime_kt"
+//            }
+//        }
     }
 
     sourceSets {

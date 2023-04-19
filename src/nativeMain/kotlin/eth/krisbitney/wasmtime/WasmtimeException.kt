@@ -17,14 +17,10 @@ import wasmtime.*
  */
 class WasmtimeException(private val error: CPointer<wasmtime_error_t>, ownedByCaller: Boolean = false) : Throwable() {
 
-    override val message: String by lazy {
-        memScoped {
-            val message = alloc<wasm_name_t>()
-            wasmtime_error_message(error, message.ptr)
-            val result = message.data?.toKString() ?: ""
-            wasm_byte_vec_delete(message.ptr)
-            result
-        }
+    override val message: String = memScoped {
+        val message = alloc<wasm_name_t>()
+        wasmtime_error_message(error, message.ptr)
+        message.data?.toKString() ?: ""
     }
 
     val exitStatus: Int? by lazy {

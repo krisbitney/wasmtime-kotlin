@@ -78,8 +78,8 @@ data class Val(val kind: Kind, val value: Any) {
             throw IllegalArgumentException("Expected Float for F32")
         } else if (valType is ValType.F64 && value !is Double) {
             throw IllegalArgumentException("Expected Double for F64")
-        } else if (valType is ValType.FuncRefType && value !is CPointer<*>) {
-            throw IllegalArgumentException("Expected CPointer<wasmtime_func_t> for FuncRef")
+        } else if (valType is ValType.FuncRefType && value !is FuncRef) {
+            throw IllegalArgumentException("Expected FuncRef for FuncRef")
         } else if (valType is ValType.AnyRef && value !is ExternRef<*>) {
             throw IllegalArgumentException("Expected ExternRef<*> for AnyRef")
         }
@@ -179,13 +179,13 @@ data class Val(val kind: Kind, val value: Any) {
          */
         fun fromCValue(value: CPointer<wasmtime_val_t>): Val {
             return when (value.pointed.kind.toInt()) {
-                WASMTIME_I32 -> Val(value.pointed.of.i32)
-                WASMTIME_I64 -> Val(value.pointed.of.i64)
-                WASMTIME_F32 -> Val(value.pointed.of.f32)
-                WASMTIME_F64 -> Val(value.pointed.of.f64)
-                WASMTIME_V128 -> Val(value.pointed.of.v128)
-                WASMTIME_FUNCREF -> Val(FuncRef(value.pointed.of.funcref.ptr))
-                WASMTIME_EXTERNREF -> Val(ExternRef<Any>(value.pointed.of.externref!!))
+                Val.Kind.I32.value -> Val(value.pointed.of.i32)
+                Val.Kind.I64.value -> Val(value.pointed.of.i64)
+                Val.Kind.F32.value -> Val(value.pointed.of.f32)
+                Val.Kind.F64.value -> Val(value.pointed.of.f64)
+                Val.Kind.V128.value -> Val(value.pointed.of.v128)
+                Val.Kind.FUNCREF.value -> Val(FuncRef(value.pointed.of.funcref.ptr))
+                Val.Kind.EXTERNREF.value -> Val(ExternRef<Any>(value.pointed.of.externref!!))
                 else -> throw IllegalArgumentException("Invalid WasmtimeValKind value: ${value.pointed.kind}")
             }
         }
@@ -225,31 +225,31 @@ data class Val(val kind: Kind, val value: Any) {
         fun allocateCValue(value: Val): CPointer<wasmtime_val_t> {
             return when (value.kind) {
                 Val.Kind.I32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_I32.toUByte()
+                    kind = Val.Kind.I32.value.toUByte()
                     of.i32 = value.i32
                 }.ptr
                 Val.Kind.I64 -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_I64.toUByte()
+                    kind = Val.Kind.I64.value.toUByte()
                     of.i64 = value.i64
                 }.ptr
                 Val.Kind.F32 -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_F32.toUByte()
+                    kind = Val.Kind.F32.value.toUByte()
                     of.f32 = value.f32
                 }.ptr
                 Val.Kind.F64 -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_F64.toUByte()
+                    kind = Val.Kind.F64.value.toUByte()
                     of.f64 = value.f64
                 }.ptr
                 Val.Kind.V128 -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_V128.toUByte()
+                    kind = Val.Kind.V128.value.toUByte()
                     memcpy(of.v128, value.v128, 16)
                 }.ptr
                 Val.Kind.FUNCREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_FUNCREF.toUByte()
+                    kind = Val.Kind.FUNCREF.value.toUByte()
                     memcpy(of.funcref.ptr, value.funcref.funcref, sizeOf<wasmtime_func_t>().toULong())
                 }.ptr
                 Val.Kind.EXTERNREF -> nativeHeap.alloc<wasmtime_val_t>().apply {
-                    kind = WASMTIME_EXTERNREF.toUByte()
+                    kind = Val.Kind.EXTERNREF.value.toUByte()
                     of.externref = value.externref.externRef
                 }.ptr
             }
@@ -274,13 +274,13 @@ data class Val(val kind: Kind, val value: Any) {
      * @property value The integer value associated with the wasm value kind.
      */
     enum class Kind(val value: Int) {
-        I32(0),
-        I64(1),
-        F32(2),
-        F64(3),
-        V128(4),
-        FUNCREF(5),
-        EXTERNREF(6);
+        I32(WASMTIME_I32),
+        I64(WASMTIME_I64),
+        F32(WASMTIME_F32),
+        F64(WASMTIME_F64),
+        V128(WASMTIME_V128),
+        FUNCREF(WASMTIME_FUNCREF),
+        EXTERNREF(WASMTIME_EXTERNREF);
 
         companion object {
             /**
