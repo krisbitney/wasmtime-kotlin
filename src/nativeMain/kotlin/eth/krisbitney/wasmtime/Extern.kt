@@ -4,11 +4,24 @@ import kotlinx.cinterop.*
 import platform.posix.memcpy
 import wasmtime.*
 
+/**
+ * Represents an external WebAssembly value type such as a function, global, table, or memory.
+ *
+ * External WebAssembly values cannot interoperate between different [Store] instances, and
+ * using an external value with the wrong store may trigger an assertion to abort the process.
+ *
+ * @property store The [CPointer] to the [wasmtime_context_t] representing the WebAssembly store.
+ * @property kind The [Kind] enumeration value specifying the type of external WebAssembly value.
+ */
 sealed class Extern(
     val store: CPointer<wasmtime_context_t>,
     val kind: Kind,
 ) {
 
+    /**
+     * Companion object for [Extern] class that provides helper functions for working
+     * with external WebAssembly values.
+     */
     companion object {
         /**
          * Constructs an [Extern] object from the given [extern] of type [wasmtime_extern_t].
@@ -45,14 +58,36 @@ sealed class Extern(
             }
         }
 
+        /**
+         * Determines the [Kind] of an external WebAssembly value from the given [extern]
+         * of type [wasmtime_extern_t].
+         *
+         * @param extern The [wasmtime_extern_t] object representing the external value.
+         * @return The [Kind] of the given [extern].
+         */
         fun kindFromCValue(extern: CPointer<wasmtime_extern_t>): Kind {
             return Kind.fromValue(extern.pointed.kind)
         }
 
+        /**
+         * Deletes the [wasmtime_extern_t] object represented by the given [extern]
+         * of type [CPointer<wasmtime_extern_t>].
+         *
+         * @param extern The [CPointer<wasmtime_extern_t>] object to be deleted.
+         */
         fun deleteCValue(extern: CPointer<wasmtime_extern_t>) {
             wasmtime_extern_delete(extern)
         }
 
+        /**
+         * Allocates a new [wasmtime_extern_t] object and initializes it with the provided
+         * [extern] of type [Extern].
+         *
+         * The caller is responsible for freeing the returned [wasmtime_extern_t] object.
+         *
+         * @param extern The [Extern] object to be converted to a [wasmtime_extern_t] object.
+         * @return A [CPointer<wasmtime_extern_t>] object representing the given [extern].
+         */
         fun allocateCValue(extern: Extern): CPointer<wasmtime_extern_t> {
             val cExtern = nativeHeap.alloc<wasmtime_extern_t>()
             cExtern.kind = extern.kind.value
@@ -77,6 +112,10 @@ sealed class Extern(
         TABLE(WASMTIME_EXTERN_TABLE.toUByte()),
         MEMORY(WASMTIME_EXTERN_MEMORY.toUByte());
 
+        /**
+         * Companion object for [Kind] enumeration that provides helper functions for
+         * working with [wasmtime_extern_kind_t] values.
+         */
         companion object {
             /**
              * Constructs a [Kind] object from the given [value] of type [wasmtime_extern_kind_t].

@@ -14,7 +14,7 @@ import wasmtime.*
  * of imports rather than requiring 1:1 mappings.
  *
  * @property linker The native Wasmtime linker pointer.
- * @constructor Creates a new linker for the specified [engine].
+ * @constructor Creates a new linker for the specified [Engine].
  * @throws Exception If failed to create a new linker.
  */
 @OptIn(ExperimentalStdlibApi::class)
@@ -42,7 +42,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * @param name The field name the item is defined under.
      * @param item The item that is being defined in this linker.
      * @return This [Linker] instance.
-     * @throws WasmtimeException If the definition failed.
+     * @throws [WasmtimeException] If the definition failed.
      */
     fun define(
         store: Store<*>,
@@ -67,17 +67,14 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
     /**
      * Defines a new function in this linker.
      *
-     * @param T The type of the data to be provided as the first argument to the callback.
      * @param module The module name the item is defined under.
      * @param name The field name the item is defined under.
-     * @param funcType The type of the function that's being defined.
+     * @param type The type of the function that's being defined.
      * @param callback The host callback to invoke when the function is called (optional).
-     * @param data The host-provided data to provide as the first argument to the callback (optional).
-     * @param finalizer An optional finalizer for the `data` argument.
      * @return This [Linker] instance.
-     * @throws WasmtimeException If the definition failed.
+     * @throws [WasmtimeException] If the definition failed.
      */
-    fun <T : Any>defineFunc(
+    fun defineFunc(
         module: String,
         name: String,
         type: FuncType,
@@ -102,7 +99,6 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             envFinalizer
         )
         FuncType.deleteCValue(cFuncType)
-        callbackRef.dispose()
         if (error != null) {
             throw WasmtimeException(error)
         }
@@ -114,9 +110,9 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * This method makes WASI functions available in the linker, which can then be used
      * by WebAssembly modules. Note that when creating an instance within a [Store],
      * the [Store]'s [Context] also needs to have its WASI settings configured using the
-     * [setWasi] method for WASI functions to work correctly.
+     * [Context.setWasi] method for WASI functions to work correctly.
      *
-     * @throws WasmtimeException if there is an error while defining WASI functions.
+     * @throws [WasmtimeException] if there is an error while defining WASI functions.
      */
     fun defineWasi(): Linker = this.apply {
         val error = wasmtime_linker_define_wasi(linker)
@@ -132,7 +128,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * @param store the store that owns the [instance].
      * @param name the module name to define the [instance] under.
      * @param instance a previously-created instance.
-     * @throws WasmtimeException if there is an error while defining the instance.
+     * @throws [WasmtimeException] if there is an error while defining the instance.
      */
     fun defineInstance(store: Store<*>, name: String, instance: Instance): Linker = this.apply {
         val error = wasmtime_linker_define_instance(
@@ -140,7 +136,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             store.context.context,
             name,
             name.length.convert(),
-            instance.instance.ptr
+            instance.instance
         )
         if (error != null) throw WasmtimeException(error)
     }
@@ -152,16 +148,16 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * @param store The store that the module will be instantiated with.
      * @param module The module to instantiate.
      * @return A new [Instance] representing the instantiated module.
-     * @throws WasmtimeException If the instantiation failed.
+     * @throws [WasmtimeException] If the instantiation failed.
      */
     fun instantiate(store: Store<*>, module: Module): Instance = memScoped {
-        val instance = cValue<wasmtime_instance_t>()
+        val instance = nativeHeap.alloc<wasmtime_instance_t>()
         val trap = alloc<CPointerVar<wasm_trap_t>>()
         val error = wasmtime_linker_instantiate(
             linker,
             store.context.context,
             module.module,
-            instance,
+            instance.ptr,
             trap.ptr
         )
         if (error != null) {
@@ -170,7 +166,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         if (trap.value != null) {
             throw Trap(trap.value!!)
         }
-        return Instance(store.context.context, instance.useContents { this })
+        return Instance(store.context.context, instance.ptr)
     }
 
     /**
@@ -182,7 +178,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * @param store the store that is used to instantiate [module].
      * @param name the name of the module within the linker.
      * @param module the module that's being instantiated.
-     * @throws WasmtimeException if the module could not be instantiated or added.
+     * @throws [WasmtimeException] if the module could not be instantiated or added.
      */
     fun module(store: Store<*>, name: String, module: Module): Linker = this.apply {
         val error = wasmtime_linker_module(
@@ -204,7 +200,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
      * @param store the store to load a function into.
      * @param name the name of the module to get the default export for.
      * @return the extracted default function.
-     * @throws WasmtimeException if the default export could not be found.
+     * @throws [WasmtimeException] if the default export could not be found.
      */
     fun getDefault(store: Store<*>, name: String): Func {
         val func = nativeHeap.alloc<wasmtime_func_t>()

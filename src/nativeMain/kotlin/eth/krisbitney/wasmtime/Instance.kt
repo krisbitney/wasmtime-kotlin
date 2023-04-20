@@ -11,14 +11,11 @@ import wasmtime.*
  * It is created by instantiating a compiled [Module] with the required [Extern] imports.
  *
  * @property instance The `wasmtime_instance_t` structure representing the WebAssembly instance.
- *
- * @constructor Creates an [Instance] from an existing [Store], [Module], and a list of [Extern] imports.
- * @constructor Creates an [Instance] from the provided [CPointer]s to a `wasmtime_context_t` and a `wasmtime_instance_t`.
  */
 @OptIn(ExperimentalStdlibApi::class)
 class Instance(
     private val store: CPointer<wasmtime_context_t>,
-    val instance: wasmtime_instance_t
+    val instance: CPointer<wasmtime_instance_t>,
 ) : AutoCloseable {
 
     /**
@@ -27,7 +24,7 @@ class Instance(
      * @param store The [Store] in which to create the instance.
      * @param module The compiled [Module] to instantiate.
      * @param imports The list of [Extern] imports to provide to the module during instantiation.
-     * @throws WasmtimeException If there is an error during instantiation, such as a link error.
+     * @throws [WasmtimeException] If there is an error during instantiation, such as a link error.
      * @throws Trap If a WebAssembly trap occurs during instantiation.
      */
     constructor(
@@ -60,7 +57,7 @@ class Instance(
                 throw Trap(trap.value!!)
             }
 
-            newInstance
+            newInstance.ptr
         }
     )
 
@@ -74,7 +71,7 @@ class Instance(
         val wasmExtern = alloc<wasmtime_extern_t>()
         val found = wasmtime_instance_export_get(
             store,
-            instance.ptr,
+            instance,
             name,
             name.length.convert(),
             wasmExtern.ptr
@@ -101,7 +98,7 @@ class Instance(
 
         val found = wasmtime_instance_export_nth(
             store,
-            instance.ptr,
+            instance,
             index.convert(),
             namePtr.ptr,
             nameLen.ptr,

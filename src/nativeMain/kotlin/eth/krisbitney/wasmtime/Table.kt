@@ -83,7 +83,7 @@ class Table(
      *
      * @param index The table index to write.
      * @param value The [Val] to store.
-     * @throws WasmtimeException If the value has the wrong type for the table or the index is out of bounds.
+     * @throws [WasmtimeException] If the value has the wrong type for the table or the index is out of bounds.
      */
     fun set(index: UInt, value: Val) {
         val cVal = Val.allocateCValue(value)
@@ -98,8 +98,8 @@ class Table(
  * @param delta The number of elements to grow the table by.
  * @param init The initial value for new table element slots.
  * @return The previous size of the table before growth.
- * @throws WasmtimeException If the value has the wrong type for the table.
- * @throws WasmtimeException If the table's maximum size would be exceeded.
+ * @throws [WasmtimeException] If the value has the wrong type for the table.
+ * @throws [WasmtimeException] If the table's maximum size would be exceeded.
  */
     fun grow(delta: UInt, init: Val): UInt = memScoped {
         val prevSize = alloc<UIntVar>()

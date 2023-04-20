@@ -79,7 +79,7 @@ class Func(
      * @param args A list of [Val] arguments to pass to the function. Defaults to `null`.
      * @return A list of [Val] representing the results of the function call.
      * @throws IllegalArgumentException If the number of provided arguments does not match the number of function parameter types.
-     * @throws WasmtimeException If an error occurs during the function call due to user error (e.g., wrong argument types or wrong store).
+     * @throws [WasmtimeException] If an error occurs during the function call due to user error (e.g., wrong argument types or wrong store).
      * @throws Trap If a WebAssembly trap occurs during the function execution.
      */
     fun call(args: List<Val>? = null): List<Val> = memScoped {

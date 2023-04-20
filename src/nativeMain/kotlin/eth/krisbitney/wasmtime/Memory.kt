@@ -72,7 +72,7 @@ class Memory(
      *
      * @param delta The number of pages to grow the memory by.
      * @return The previous size of the memory, in WebAssembly pages.
-     * @throws WasmtimeException If the memory cannot be grown.
+     * @throws [WasmtimeException] If the memory cannot be grown.
      */
     fun grow(delta: ULong): ULong = memScoped {
         val prevSize = alloc<ULongVar>()

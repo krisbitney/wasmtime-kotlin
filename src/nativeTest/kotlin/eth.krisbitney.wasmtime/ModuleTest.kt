@@ -1,11 +1,11 @@
 package eth.krisbitney.wasmtime
 
 import eth.krisbitney.wasmtime.wasm.MemoryType
-import invalidWat
-import moduleWithMemoryImport
-import moduleWithSimpleExport
-import moduleWithSimpleImport
-import moduleWithSimpleImportAndExport
+import util.invalidWat
+import util.moduleWithMemoryImport
+import util.moduleWithSimpleExport
+import util.moduleWithSimpleImport
+import util.moduleWithSimpleImportAndExport
 import util.wrapWasmBytes
 import kotlin.test.*
 

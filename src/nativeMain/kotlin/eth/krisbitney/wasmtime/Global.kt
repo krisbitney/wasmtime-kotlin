@@ -33,7 +33,7 @@ class Global(
      * @param store The [Store] in which to create the global.
      * @param globalType The [GlobalType] specifying the WebAssembly type of the global being created.
      * @param value The initial value of the global, specified as a [Val].
-     * @throws WasmtimeException If the provided value does not match the specified type of the global or comes from a different store.
+     * @throws [WasmtimeException] If the provided value does not match the specified type of the global or comes from a different store.
      */
     constructor(
         store: Store<*>,
@@ -77,7 +77,7 @@ class Global(
      * Sets the global to a new value.
      *
      * @param value The new value to store in the global as a [Val] instance.
-     * @throws WasmtimeException If the global is not mutable or if the provided value has the wrong type for the global.
+     * @throws [WasmtimeException] If the global is not mutable or if the provided value has the wrong type for the global.
      */
     fun set(value: Val) {
         val wasmtimeVal = Val.allocateCValue(value)

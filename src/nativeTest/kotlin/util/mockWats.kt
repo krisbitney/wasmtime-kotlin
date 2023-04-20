@@ -1,21 +1,23 @@
-val moduleWithSimpleExport = """(module
+package util
+
+const val moduleWithSimpleExport = """(module
   (func (export "simple_function") (result i32)
     i32.const 42
   )
 )
 """
 
-val moduleWithSimpleImport = """(module
+const val moduleWithSimpleImport = """(module
   (import "env" "simple_function" (func (result i32)))
 )
 """
 
-val moduleWithMemoryImport = """(module
+const val moduleWithMemoryImport = """(module
   (import "env" "memory" (memory 1))
 )
 """
 
-val moduleWithSimpleImportAndExport = """(module
+const val moduleWithSimpleImportAndExport = """(module
   (import "env" "simple_function" (func (result i32)))
   (func (export "simple_function") (result i32)
     i32.const 42
@@ -23,7 +25,22 @@ val moduleWithSimpleImportAndExport = """(module
 )
 """
 
-val invalidWat = """(module
+const val moduleWithTwoExports = """(module
+  (func (export "first"))
+  (func (export "second")))
+"""
+
+const val additionModule = """(module
+  (func ${'$'}add (param ${'$'}x i32) (param ${'$'}y i32) (result i32)
+    local.get ${'$'}x
+    local.get ${'$'}y
+    i32.add)
+  (export "" (func ${'$'}add))
+  (export "add" (func ${'$'}add))
+)
+"""
+
+const val invalidWat = """(module
   (import "env" "memory" (memory 1))
   (import "env" "memory" (memory 1))
 )
