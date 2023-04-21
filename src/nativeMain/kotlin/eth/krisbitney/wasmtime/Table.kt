@@ -10,11 +10,10 @@ import wasmtime.*
  * @property store A pointer to the wasmtime context used for table operations.
  * @property table A pointer to the wasmtime table.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Table(
     store: CPointer<wasmtime_context_t>,
     val table: CPointer<wasmtime_table_t>,
-) : Extern(store, Extern.Kind.TABLE), AutoCloseable {
+) : Extern(store, Extern.Kind.TABLE) {
 
     /**
      * Retrieves the [TableType] of the table.
@@ -27,7 +26,7 @@ class Table(
     /**
      * Retrieves the size of the table in elements.
      */
-    val size: UInt get() = wasmtime_table_size(store, table)
+    val size: UInt get() = wasmtime_table_size(this.store, table)
 
     /**
      * Constructs a new table with the specified [store], initial value [init], and [tableType].
@@ -58,6 +57,7 @@ class Table(
                 nativeHeap.free(cTable.ptr)
                 throw WasmtimeException(it)
             }
+            store.own(cTable.ptr)
             cTable.ptr
         }
     )
@@ -108,9 +108,5 @@ class Table(
         Val.deleteCValue(cVal)
         error?.let { throw WasmtimeException(it) }
         prevSize.value
-    }
-
-    override fun close() {
-        nativeHeap.free(table)
     }
 }

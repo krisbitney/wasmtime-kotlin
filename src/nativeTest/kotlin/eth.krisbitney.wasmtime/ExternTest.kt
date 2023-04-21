@@ -48,10 +48,6 @@ class ExternTest {
 
     @AfterTest
     fun afterEach() {
-        memory.close()
-        table.close()
-        func.close()
-        global.close()
         store.close()
         engine.close()
     }

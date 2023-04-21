@@ -69,8 +69,8 @@ class LinkerTest {
         assertTrue(extern is Func)
         val result = extern.call(listOf(Val(2)))
         assertEquals(4, result[0].i32)
+
         linker.close()
-        extern.close()
     }
 
     @Test
@@ -97,10 +97,8 @@ class LinkerTest {
         val result = extern.call(listOf(Val(2), Val(3)))
         assertEquals(5, result[0].i32)
 
-        instance.close()
         module.close()
         linker.close()
-        extern.close()
     }
 
     @Test
@@ -118,10 +116,8 @@ class LinkerTest {
         val result = extern.call(listOf(Val(2), Val(3)))
         assertEquals(5, result[0].i32)
 
-        instance.close()
         module.close()
         linker.close()
-        extern.close()
     }
 
     @Test
@@ -141,7 +137,6 @@ class LinkerTest {
 
         module.close()
         linker.close()
-        extern.close()
     }
 
     @Test
@@ -159,10 +154,9 @@ class LinkerTest {
         val result = func.call(listOf(Val(2), Val(3)))
         assertEquals(5, result[0].i32)
 
-        instance.close()
         module.close()
         linker.close()
-        func.close()
+        
     }
 
 

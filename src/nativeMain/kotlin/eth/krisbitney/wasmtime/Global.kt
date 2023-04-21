@@ -13,11 +13,10 @@ import wasmtime.*
  * @property store The [CPointer] to the [wasmtime_context_t] that represents the store containing this global.
  * @property global The [CPointer] to the [wasmtime_global_t] that represents the global value.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Global(
     store: CPointer<wasmtime_context_t>,
     val global: CPointer<wasmtime_global_t>
-) : Extern(store, Extern.Kind.GLOBAL), AutoCloseable {
+) : Extern(store, Extern.Kind.GLOBAL) {
 
     /**
      * The [GlobalType] of this global value.
@@ -57,6 +56,7 @@ class Global(
                 nativeHeap.free(this)
                 throw WasmtimeException(error)
             }
+            store.own(this.ptr)
         }.ptr
     )
 
@@ -86,9 +86,5 @@ class Global(
         if (error != null) {
             throw WasmtimeException(error)
         }
-    }
-
-    override fun close() {
-        nativeHeap.free(global)
     }
 }

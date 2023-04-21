@@ -27,11 +27,10 @@ typealias FuncCallback = (caller: Caller, args: List<Val>) -> Result<List<Val>>
  * @param store A [CPointer] to the [wasmtime_context_t] representing the store.
  * @param func A [CPointer] to the [wasmtime_func_t] representing the function.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Func(
     store: CPointer<wasmtime_context_t>,
     val func: CPointer<wasmtime_func_t>
-) : Extern(store, Extern.Kind.FUNC), AutoCloseable {
+) : Extern(store, Extern.Kind.FUNC) {
 
     /**
      * Lazily retrieves the [FuncType] of the WebAssembly function.
@@ -70,6 +69,7 @@ class Func(
                 this.ptr
             )
             FuncType.deleteCValue(cFuncType)
+            store.own(this.ptr)
         }.ptr
     )
 
@@ -146,10 +146,6 @@ class Func(
      */
     fun toRaw(): size_t {
         return wasmtime_func_to_raw(store, func)
-    }
-
-    override fun close() {
-        nativeHeap.free(func)
     }
 }
 

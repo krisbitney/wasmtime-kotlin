@@ -14,11 +14,10 @@ import wasmtime.*
  * @property store A [CPointer] to a [wasmtime_context_t] representing the store containing this memory object.
  * @property memory A [CPointer] to a [wasmtime_memory_t] representing the WebAssembly memory object.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Memory(
     store: CPointer<wasmtime_context_t>,
     val memory: CPointer<wasmtime_memory_t>
-) : Extern(store, Extern.Kind.MEMORY), AutoCloseable {
+) : Extern(store, Extern.Kind.MEMORY) {
 
     /**
      * Retrieves the [MemoryType] of this memory object.
@@ -63,6 +62,7 @@ class Memory(
                         nativeHeap.free(this)
                         throw WasmtimeException(error)
                     }
+                    store.own(this.ptr)
                 }.ptr
             )
 
@@ -79,9 +79,5 @@ class Memory(
         val error = wasmtime_memory_grow(store, memory, delta, prevSize.ptr)
         if (error != null) throw WasmtimeException(error)
         return prevSize.value
-    }
-
-    override fun close() {
-        nativeHeap.free(memory)
     }
 }

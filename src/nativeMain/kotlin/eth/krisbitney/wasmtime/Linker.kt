@@ -166,7 +166,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
         if (trap.value != null) {
             throw Trap(trap.value!!)
         }
-        return Instance(store.context.context, instance.ptr)
+        return Instance(store, instance.ptr)
     }
 
     /**
@@ -215,6 +215,7 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             nativeHeap.free(func)
             throw WasmtimeException(error)
         }
+        store.own(func.ptr)
         return Func(store.context.context, func.ptr)
     }
 
@@ -245,7 +246,14 @@ class Linker(val linker:  CPointer<wasmtime_linker_t>) : AutoCloseable {
             item.ptr
         )
         return if (found) {
-            Extern.fromCValue(store.context.context, item.ptr)
+            val extern = Extern.fromCValue(store.context.context, item.ptr)
+            when (extern) {
+                is Func -> store.own(extern.func)
+                is Table -> store.own(extern.table)
+                is Memory -> store.own(extern.memory)
+                is Global -> store.own(extern.global)
+            }
+            extern
         } else {
             null
         }

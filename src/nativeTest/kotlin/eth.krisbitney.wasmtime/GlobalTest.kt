@@ -19,7 +19,6 @@ class GlobalTests {
         val type = global.type
         assertEquals(int32Type, type, "GlobalType should be equal to the provided type")
 
-        global.close()
         store.close()
     }
 
@@ -33,7 +32,6 @@ class GlobalTests {
         val value = global.get()
         assertEquals(initialValue, value, "Initial value should be equal to the provided value")
 
-        global.close()
         store.close()
     }
 
@@ -53,7 +51,6 @@ class GlobalTests {
         val value2 = global.get()
         assertEquals(newValue, value2, "Updated value should be equal to the new value")
 
-        global.close()
         store.close()
     }
 
@@ -71,7 +68,6 @@ class GlobalTests {
         }
         assertNotNull(exception, "Setting an immutable global should throw a WasmtimeException")
 
-        global.close()
         store.close()
     }
 

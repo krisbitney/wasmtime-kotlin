@@ -27,8 +27,7 @@ class FuncTest {
 
         assertEquals(1, results.size)
         assertEquals(Val(3), results[0])
-
-        func.close()
+        
         store.close()
     }
 
@@ -50,7 +49,6 @@ class FuncTest {
             func.call(listOf(Val(1), Val(2L)))
         }
 
-        func.close()
         store.close()
     }
 
@@ -74,7 +72,6 @@ class FuncTest {
             func.call(listOf(Val(1), Val(2)))
         }
 
-        func.close()
         store.close()
     }
 
@@ -99,9 +96,7 @@ class FuncTest {
 
         assertEquals(1, results.size)
         assertEquals(Val(3), results[0])
-
-        rawFunc.close()
-        func.close()
+        
         store.close()
     }
 
@@ -132,7 +127,6 @@ class FuncTest {
             func.call(argsInvalid)
         }
 
-        func.close()
         store.close()
     }
 
@@ -150,7 +144,6 @@ class FuncTest {
         val results = func.call()
         assertTrue(results.isEmpty())
 
-        func.close()
         store.close()
     }
 
@@ -178,7 +171,6 @@ class FuncTest {
         assertEquals(Val(42f), results[0])
         assertEquals(Val(1234567890123456.0), results[1])
 
-        func.close()
         store.close()
     }
 
@@ -199,8 +191,7 @@ class FuncTest {
         assertFailsWith<WasmtimeException> {
             func.call(argsMismatched)
         }
-
-        func.close()
+        
         store.close()
     }
 
@@ -222,8 +213,7 @@ class FuncTest {
         val results = func.call(args)
         assertEquals(1, results.size)
         assertEquals(Val(12), results[0])
-
-        func.close()
+        
         store.close()
     }
 
@@ -256,8 +246,7 @@ class FuncTest {
         assertEquals(2, store.data!!.size)
         assertEquals(1, store.data!![0])
         assertEquals(3, store.data!![1])
-
-        func.close()
+        
         store.close()
     }
 }

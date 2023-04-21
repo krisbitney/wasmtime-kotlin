@@ -16,13 +16,14 @@ import wasmtime.*
  * @throws RuntimeException if the Wasmtime store creation fails.
  */
 @OptIn(ExperimentalStdlibApi::class)
-class Store<T>(
-    val engine: Engine,
-    initData: T? = null
-) : AutoCloseable {
+class Store<T>(val engine: Engine, initData: T? = null) : AutoCloseable {
 
     private val store: CPointer<wasmtime_store_t>
+    private val owned: MutableList<COpaquePointer> = mutableListOf()
 
+    /**
+     * The user-provided data associated with the [Store].
+     */
     var data: T? = initData
         set(value) {
             this.context.setData(value)
@@ -69,8 +70,11 @@ class Store<T>(
         wasmtime_store_limiter(store, memorySize, tableElements, instances, tables, memories)
     }
 
+    fun own(ptr: COpaquePointer) = owned.add(ptr)
+
     override fun close() {
         wasmtime_store_delete(store)
+        owned.forEach { nativeHeap.free(it) }
     }
 }
 

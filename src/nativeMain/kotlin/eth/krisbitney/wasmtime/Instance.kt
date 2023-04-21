@@ -12,11 +12,12 @@ import wasmtime.*
  *
  * @property instance The `wasmtime_instance_t` structure representing the WebAssembly instance.
  */
-@OptIn(ExperimentalStdlibApi::class)
 class Instance(
-    private val store: CPointer<wasmtime_context_t>,
+    private val store: Store<*>,
     val instance: CPointer<wasmtime_instance_t>,
-) : AutoCloseable {
+) {
+
+    init { store.own(instance) }
 
     /**
      * Instantiates the provided [Module] with the given [imports] in the [store].
@@ -32,7 +33,7 @@ class Instance(
         module: Module,
         imports: List<Extern>,
     ) : this(
-        store.context.context,
+        store,
         memScoped {
             val (cImportsRef, cImportsPtr) = imports.toCValuesRef()
             val newInstance = nativeHeap.alloc<wasmtime_instance_t>()
@@ -56,7 +57,6 @@ class Instance(
                 nativeHeap.free(newInstance)
                 throw Trap(trap.value!!)
             }
-
             newInstance.ptr
         }
     )
@@ -70,7 +70,7 @@ class Instance(
     fun getExport(name: String): Extern? = memScoped {
         val wasmExtern = alloc<wasmtime_extern_t>()
         val found = wasmtime_instance_export_get(
-            store,
+            store.context.context,
             instance,
             name,
             name.length.convert(),
@@ -78,7 +78,14 @@ class Instance(
         )
 
         return if (found) {
-            Extern.fromCValue(store, wasmExtern.ptr)
+            val extern = Extern.fromCValue(store.context.context, wasmExtern.ptr)
+            when (extern) {
+                is Func -> store.own(extern.func)
+                is Table -> store.own(extern.table)
+                is Memory -> store.own(extern.memory)
+                is Global -> store.own(extern.global)
+            }
+            extern
         } else {
             null
         }
@@ -97,7 +104,7 @@ class Instance(
         val wasmExtern = alloc<wasmtime_extern_t>()
 
         val found = wasmtime_instance_export_nth(
-            store,
+            store.context.context,
             instance,
             index.convert(),
             namePtr.ptr,
@@ -107,14 +114,16 @@ class Instance(
 
         return if (found) {
             val name = namePtr.value!!.toKString()
-            val extern = Extern.fromCValue(store, wasmExtern.ptr)
+            val extern = Extern.fromCValue(store.context.context, wasmExtern.ptr)
+            when (extern) {
+                is Func -> store.own(extern.func)
+                is Table -> store.own(extern.table)
+                is Memory -> store.own(extern.memory)
+                is Global -> store.own(extern.global)
+            }
             name to extern
         } else {
             null
         }
-    }
-
-    override fun close() {
-        nativeHeap.free(instance)
     }
 }

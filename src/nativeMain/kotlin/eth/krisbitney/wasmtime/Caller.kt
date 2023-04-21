@@ -25,6 +25,10 @@ class Caller(val caller: CPointer<wasmtime_caller_t>) {
     /**
      * Retrieves the exported WebAssembly value by its name from the caller's context.
      *
+     * Unlike other methods that return an [Extern], here the caller owns the returned value
+     * and must manually free the C value contained in it using [nativeHeap.free].
+     * For example: `nativeHeap.free(extern.memory)`
+     *
      * @param name The name of the exported value to look up.
      * @return An [Extern] instance if the exported value is found, or `null` if not found.
      *

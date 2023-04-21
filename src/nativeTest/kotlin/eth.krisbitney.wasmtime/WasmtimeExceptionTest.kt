@@ -31,8 +31,6 @@ class WasmtimeExceptionTest {
         
         assertNotNull(exception)
         assertNotNull(exception.message)
-
-        memory.close()
     }
 
     @Test

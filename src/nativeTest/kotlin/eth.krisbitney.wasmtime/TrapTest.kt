@@ -51,7 +51,6 @@ class TrapTest {
 
         module.close()
         linker.close()
-        extern.close()
         store.close()
         engine.close()
 

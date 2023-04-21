@@ -5,11 +5,23 @@ import eth.krisbitney.wasmtime.wasm.*
 
 class TableTest {
 
-    private val engine = Engine()
+    private lateinit var engine: Engine
+    private lateinit var store: Store<Unit>
+
+    @BeforeTest
+    fun beforeEach() {
+        engine = Engine()
+        store = Store<Unit>(engine)
+    }
+
+    @AfterTest
+    fun afterEach() {
+        store.close()
+        engine.close()
+    }
 
     @Test
     fun testTableCreation() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val init = Val(ExternRef(null))
 
@@ -17,14 +29,10 @@ class TableTest {
         assertNotNull(table, "Table should be created successfully")
         assertEquals(tableType, table.type, "Table type should match the input table type")
         assertEquals(0u, table.size, "Table size should be 0")
-
-        table.close()
-        store.close()
     }
 
     @Test
     fun testTableGetUninitialized() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val externRef = ExternRef(null)
         val init = Val(externRef)
@@ -32,14 +40,10 @@ class TableTest {
         val table = Table(store, init, tableType)
         val value = table.get(0u)
         assertNull(value, "Table should return null for uninitialized value")
-
-        table.close()
-        store.close()
     }
 
     @Test
     fun testTableGrow() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val init = Val(ExternRef(null))
         val table = Table(store, init, tableType)
@@ -53,14 +57,10 @@ class TableTest {
         assertEquals(42, table.get(0u)?.externref?.data<Int>(), "Table should return the set value")
         assertEquals(42, table.get(4u)?.externref?.data<Int>(), "Table should return the set value")
         assertEquals(null, table.get(6u), "Table should return null for uninitialized value")
-
-        table.close()
-        store.close()
     }
 
     @Test
     fun testTableGrowExceedingMaxSize() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val init = Val(ExternRef(null))
         val table = Table(store, init, tableType)
@@ -68,14 +68,10 @@ class TableTest {
         assertFailsWith<WasmtimeException> {
             table.grow(11u, Val(ExternRef(42)))
         }
-
-        table.close()
-        store.close()
     }
 
     @Test
     fun testTableSetAndGet() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val init = Val(ExternRef(null))
         val table = Table(store, init, tableType)
@@ -86,14 +82,10 @@ class TableTest {
         table.set(0u, value)
         val result = table.get(0u)
         assertEquals(42, result?.externref?.data<Int>(), "Table should return the set value")
-
-        table.close()
-        store.close()
     }
 
     @Test
     fun testTableSetOutOfBounds() {
-        val store = Store<Unit>(engine)
         val tableType = TableType(ValType.Kind.ANYREF, Limits(0u, 10u))
         val init = Val(ExternRef(null))
         val table = Table(store, init, tableType)
@@ -101,8 +93,5 @@ class TableTest {
         assertFailsWith<WasmtimeException> {
             table.set(11u, Val(ExternRef(16)))
         }
-
-        table.close()
-        store.close()
     }
 }
