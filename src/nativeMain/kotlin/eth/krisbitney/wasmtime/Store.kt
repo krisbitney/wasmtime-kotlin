@@ -11,18 +11,26 @@ import wasmtime.*
  * @param T The type of data to be associated with the [Store].
  * @property engine The [Engine] instance that the [Store] is connected to.
  * @property data Optional user-provided data that will be associated with the [Store].
+ *
  * @constructor Creates a new [Store] instance.
  * @throws RuntimeException if the Wasmtime store creation fails.
  */
 @OptIn(ExperimentalStdlibApi::class)
 class Store<T>(
     val engine: Engine,
-    val data: T? = null
+    initData: T? = null
 ) : AutoCloseable {
+
     private val store: CPointer<wasmtime_store_t>
 
+    var data: T? = initData
+        set(value) {
+            this.context.setData(value)
+            field = value
+        }
+
     init {
-        val dataPtr: COpaquePointer? = data?.let { StableRef.create(it).asCPointer() }
+        val dataPtr: COpaquePointer? = this.data?.let { StableRef.create(it).asCPointer() }
         val finalizer: CPointer<CFunction<(COpaquePointer?) -> Unit>> = staticCFunction { ptr: COpaquePointer? ->
             ptr?.asStableRef<Any>()?.dispose()
         }

@@ -16,7 +16,7 @@ class StoreTest {
         @Test
         fun `test create Store with custom data`() {
             val engine = Engine()
-            val store = Store(engine, data = "CustomData")
+            val store = Store(engine, initData = "CustomData")
             assertNotNull(store)
             assertNotNull(store.data)
             store.close()
@@ -26,7 +26,7 @@ class StoreTest {
         @Test
         fun `test getContext`() {
             val engine = Engine()
-            val store = Store(engine, data = "CustomData")
+            val store = Store(engine, initData = "CustomData")
             val context = store.context
             assertNotNull(context)
             assertNotNull(context.context)
@@ -38,7 +38,7 @@ class StoreTest {
         @Test
         fun `test setLimiter`() {
             val engine = Engine()
-            val store = Store(engine, data = "CustomData")
+            val store = Store(engine, initData = "CustomData")
             store.setLimiter(memorySize = 1024, tableElements = 128, instances = 20, tables = 20, memories = 20)
             store.close()
             engine.close()
@@ -49,7 +49,7 @@ class StoreTest {
             val count = 10_000
 
             repeat(count) { i ->
-                Store(engine, data = i).close()
+                Store(engine, initData = i).close()
             }
 
             engine.close()
