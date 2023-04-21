@@ -45,3 +45,32 @@ const val invalidWat = """(module
   (import "env" "memory" (memory 1))
 )
 """
+
+const val unreachableTrap = """(module
+  (func (export "traps") (param i32) (result i32)
+    (block (result i32)
+      unreachable
+    )
+  )
+)
+"""
+
+const val divideByZeroTrap = """(module
+  (func (export "traps") (param i32) (result i32)
+    local.get 0
+    i32.const 0
+    i32.div_s
+  )
+)
+"""
+
+const val memoryOutOfBoundsTrap = """(module
+  (memory 1)
+  (func (export "traps") (param i32) (result i32)
+    i32.const 65536
+    i32.load
+  )
+)
+"""
+
+

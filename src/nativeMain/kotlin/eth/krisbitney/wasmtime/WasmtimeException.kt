@@ -17,33 +17,33 @@ import wasmtime.*
  */
 class WasmtimeException(private val error: CPointer<wasmtime_error_t>, ownedByCaller: Boolean = false) : Throwable() {
 
+    val exitStatus: Int? = memScoped {
+        val status = alloc<IntVar>()
+        if (wasmtime_error_exit_status(error, status.ptr)) {
+            status.value
+        } else {
+            null
+        }
+    }
+
+    val wasmTrace: List<ErrorFrame> = memScoped {
+        val frameVec = alloc<wasm_frame_vec_t>()
+        wasmtime_error_wasm_trace(error, frameVec.ptr)
+
+        val frames = List(frameVec.size.toInt()) { index ->
+            ErrorFrame(frameVec.data?.get(index)!!)
+        }
+
+        frames
+    }
+
     override val message: String = memScoped {
-        val message = alloc<wasm_name_t>()
-        wasmtime_error_message(error, message.ptr)
-        message.data?.toKString() ?: ""
-    }
-
-    val exitStatus: Int? by lazy {
-        memScoped {
-            val status = alloc<IntVar>()
-            val hasStatus = wasmtime_error_exit_status(error, status.ptr)
-            if (hasStatus) status.value else null
-        }
-    }
-
-    val wasmTrace: List<ErrorFrame> by lazy {
-        memScoped {
-            val frameVec = alloc<wasm_frame_vec_t>()
-            wasmtime_error_wasm_trace(error, frameVec.ptr)
-
-            val frames = List(frameVec.size.toInt()) { index ->
-                ErrorFrame(frameVec.data?.get(index)!!)
-            }
-
-            wasm_frame_vec_delete(frameVec.ptr)
-
-            frames
-        }
+        val msg = alloc<wasm_name_t>()
+        wasmtime_error_message(error, msg.ptr)
+        var result = msg.data?.toKString() ?: ""
+        exitStatus?.let { result += " (exit status: $it)" }
+        wasmTrace.forEach { frame -> result += "\n    $frame" }
+        result
     }
 
     init {

@@ -11,9 +11,6 @@ import wasmtime.*
  * @property moduleOffset The byte offset from the beginning of the original WebAssembly file to the instruction this frame points to.
  * @property funcName The name of the function this frame corresponds to, if available.
  * @property moduleName The name of the module this frame corresponds to, if available.
- *
- * @constructor Constructs a new [ErrorFrame] from the given [wasm_frame_t] pointer.
- * @param frame The C pointer to a [wasm_frame_t] struct.
  */
 class ErrorFrame(
     val funcIndex: UInt,
@@ -22,6 +19,12 @@ class ErrorFrame(
     val funcName: String? = null,
     val moduleName: String? = null
     ) {
+
+    /**
+     * Constructs a new [ErrorFrame] from the given [wasm_frame_t] pointer.
+     *
+     * @param frame The C pointer to a [wasm_frame_t] struct.
+     */
     constructor(frame: CPointer<wasm_frame_t>) : this(
         wasm_frame_func_index(frame),
         wasm_frame_func_offset(frame),
@@ -30,5 +33,9 @@ class ErrorFrame(
         wasmtime_frame_module_name(frame)?.let { it.pointed.data?.toKString() }
     ) {
         wasm_frame_delete(frame)
+    }
+
+    override fun toString(): String {
+        return "ErrorFrame(funcIndex=$funcIndex, funcOffset=$funcOffset, moduleOffset=$moduleOffset, funcName=$funcName, moduleName=$moduleName)"
     }
 }

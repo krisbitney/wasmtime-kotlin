@@ -26,7 +26,6 @@ class Module(val module: CPointer<wasmtime_module_t>) : AutoCloseable {
                             error?.let { throw WasmtimeException(error) }
                         }
                     }
-                    println("modulePtr.value: ${modulePtr.value}")
                     modulePtr.value ?: throw Exception("Failed to create module.")
                 }
             )
