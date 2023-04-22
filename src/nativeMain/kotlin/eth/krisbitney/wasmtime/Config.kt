@@ -168,7 +168,7 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @return This [Config] object, to allow for method chaining.
      */
     fun setStrategy(strategy: WasmtimeStrategy): Config = this.apply {
-        wasmtime_config_strategy_set(config, strategy.ordinal.convert())
+        wasmtime_config_strategy_set(config, strategy.value)
     }
 
     /**
@@ -223,7 +223,7 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @return This [Config] object, to allow for method chaining.
      */
     fun setCraneliftOptLevel(optLevel: OptLevel): Config = this.apply {
-        wasmtime_config_cranelift_opt_level_set(config, optLevel.ordinal.convert())
+        wasmtime_config_cranelift_opt_level_set(config, optLevel.value)
     }
 
     /**
@@ -234,7 +234,7 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @see wasmtime_profiling_strategy_enum for possible values.
      */
     fun setProfiler(profilingStrategy: ProfilingStrategy): Config = this.apply {
-        wasmtime_config_profiler_set(config, profilingStrategy.ordinal.convert())
+        wasmtime_config_profiler_set(config, profilingStrategy.value)
     }
 
     /**
@@ -242,7 +242,6 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      *
      * @param size The maximum size of the static memory in bytes.
      * @return A [Config] object with the applied static memory maximum size.
-     * @see WASMTIME_CONFIG_PROP(void, static_memory_maximum_size, uint64_t)
      */
     fun setStaticMemoryMaximumSize(size: ULong): Config = this.apply {
         wasmtime_config_static_memory_maximum_size_set(config, size)
@@ -253,7 +252,6 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      *
      * @param size The size of the guard region for static memory in bytes.
      * @return A [Config] object with the applied static memory guard size.
-     * @see WASMTIME_CONFIG_PROP(void, static_memory_guard_size, uint64_t)
      */
     fun setStaticMemoryGuardSize(size: ULong): Config = this.apply {
         wasmtime_config_static_memory_guard_size_set(config, size)
@@ -264,7 +262,6 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      *
      * @param size The size of the guard region for dynamic memory in bytes.
      * @return A [Config] object with the applied dynamic memory guard size.
-     * @see WASMTIME_CONFIG_PROP(void, dynamic_memory_guard_size, uint64_t)
      */
     fun setDynamicMemoryGuardSize(size: ULong): Config = this.apply {
         wasmtime_config_dynamic_memory_guard_size_set(config, size)
@@ -296,9 +293,9 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @property AUTO Automatically picks the compilation backend, currently always defaulting to Cranelift.
      * @property CRANELIFT Unconditionally uses Cranelift to compile WebAssembly code.
      */
-    enum class WasmtimeStrategy {
-        AUTO,
-        CRANELIFT
+    enum class WasmtimeStrategy(val value: wasmtime_strategy_t) {
+        AUTO(wasmtime_strategy_enum.WASMTIME_STRATEGY_AUTO.value.toUByte()),
+        CRANELIFT(wasmtime_strategy_enum.WASMTIME_STRATEGY_CRANELIFT.value.toUByte());
     }
 
     /**
@@ -309,10 +306,10 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @property SPEED_AND_SIZE Generated code will be optimized, but some speed optimizations are
      *                           disabled if they cause the generated code to be significantly larger.
      */
-    enum class OptLevel {
-        NONE,
-        SPEED,
-        SPEED_AND_SIZE
+    enum class OptLevel(val value: wasmtime_opt_level_t) {
+        NONE(wasmtime_opt_level_enum.WASMTIME_OPT_LEVEL_NONE.value.toUByte()),
+        SPEED(wasmtime_opt_level_enum.WASMTIME_OPT_LEVEL_SPEED.value.toUByte()),
+        SPEED_AND_SIZE(wasmtime_opt_level_enum.WASMTIME_OPT_LEVEL_SPEED_AND_SIZE.value.toUByte());
     }
 
     /**
@@ -324,9 +321,10 @@ class Config(val config: CPointer<wasm_config_t>) : AutoCloseable {
      * @property VTUNE Support for VTune will be enabled, and the VTune runtime will be informed,
      *                  at runtime, about JIT code. Note that this isn't always enabled at build time.
      */
-    enum class ProfilingStrategy {
-        NONE,
-        JITDUMP,
-        VTUNE
+    enum class ProfilingStrategy(val value: wasmtime_profiling_strategy_t) {
+        NONE(wasmtime_profiling_strategy_enum.WASMTIME_PROFILING_STRATEGY_NONE.value.toUByte()),
+        JITDUMP(wasmtime_profiling_strategy_enum.WASMTIME_PROFILING_STRATEGY_JITDUMP.value.toUByte()),
+        VTUNE(wasmtime_profiling_strategy_enum.WASMTIME_PROFILING_STRATEGY_VTUNE.value.toUByte()),
+        PERFMAP(wasmtime_profiling_strategy_enum.WASMTIME_PROFILING_STRATEGY_PERFMAP.value.toUByte());
     }
 }

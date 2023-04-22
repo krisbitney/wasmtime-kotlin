@@ -32,16 +32,11 @@ kotlin {
         compilations.getByName("main") {
             cinterops {
                 val wasmtime by creating {
-                    includeDirs("wasmtime-v7.0.0-aarch64-macos-c-api/include")
+                    includeDirs("wasmtime-v8.0.0-aarch64-macos-c-api/include")
                     defFile("src/nativeInterop/cinterop/wasmtime.def")
                 }
             }
         }
-//        binaries {
-//            sharedLib {
-//                baseName = "wasmtime_kt"
-//            }
-//        }
     }
 
     sourceSets {

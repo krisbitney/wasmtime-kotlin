@@ -1,6 +1,6 @@
-Create a wasmtimeScope function that creates a scope for the lifetime of wasmtime types.
+Create a wasmtimeScope function that creates a scope for the lifetime of wasmtime types?
 
-Improve thread safety
+Improve thread safety?
  - review headers for thread safety guidelines
  - implement thread safety where possible
 
