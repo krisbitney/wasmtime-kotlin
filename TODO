@@ -5,5 +5,4 @@ Improve thread safety?
  - implement thread safety where possible
 
 Configure build script
- - download correct wasmtime C library for each platform
  - publish build artifacts for each target to maven central
