@@ -3,7 +3,6 @@ headerFilter = wasmtime/* wasmtime.h wasm.h wasi.h
 package = wasmtime
 
 staticLibraries = libwasmtime.a
-libraryPaths = /Users/kris/IdeaProjects/krisbitney/wasmtime-kt/wasmtime-v8.0.0-aarch64-macos-c-api/lib
 
 compilerOpts.mingw = -DWASM_API_EXTERN= -DWASI_API_EXTERN=
 linkerOpts.mingw = ws2_32.lib advapi32.lib userenv.lib ntdll.lib shell32.lib ole32.lib bcrypt.lib
