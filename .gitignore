@@ -3,3 +3,4 @@
 /build/
 /build/classes/kotlin/native/main/klib/
 wasmtime-c-api
+test_stderr_file.txt
