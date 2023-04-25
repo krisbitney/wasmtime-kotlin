@@ -10,6 +10,10 @@ Although the code is thoroughly documented following the KDoc standard, the docu
 
 TODO
 
+## Quick Start
+
+TODO
+
 ## Memory Management
 
 The Kotlin/Native package can be used without any direct interaction with C. Class instances that implement the `Autocloseable` interface need to be closed when you're done using them in order to free the associated memory resources. This can be done by calling their `close` method, or with the `use` scope. `Extern` and `Instance` instances do not need to be freed; they are owned by the `Store` and will be freed when the `Store` is closed. 

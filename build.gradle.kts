@@ -3,10 +3,11 @@ import org.jetbrains.kotlin.de.undercouch.gradle.tasks.download.Download
 plugins {
     kotlin("multiplatform") version "1.8.20"
     id("de.undercouch.download") version "5.4.0"
+    id("convention.publication")
 }
 
 group = "io.github.krisbitney"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
