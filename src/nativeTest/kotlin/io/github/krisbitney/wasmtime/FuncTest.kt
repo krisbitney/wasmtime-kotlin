@@ -5,11 +5,23 @@ import kotlin.test.*
 
 class FuncTest {
 
-    private val engine = Engine()
+    private lateinit var engine: Engine
+    private lateinit var store: Store<Unit>
+
+    @BeforeTest
+    fun beforeEach() {
+        engine = Engine()
+        store = Store<Unit>(engine)
+    }
+
+    @AfterTest
+    fun afterEach() {
+        store.close()
+        engine.close()
+    }
 
     @Test
     fun testFuncCall() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32(), ValType.I64())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -27,13 +39,10 @@ class FuncTest {
 
         assertEquals(1, results.size)
         assertEquals(Val(3), results[0])
-        
-        store.close()
     }
 
     @Test
     fun testFuncCallWithDifferentNumberOfArgs() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -48,13 +57,10 @@ class FuncTest {
         assertFailsWith<IllegalArgumentException> {
             func.call(listOf(Val(1), Val(2L)))
         }
-
-        store.close()
     }
 
     @Test
     fun testFuncCallWithInvalidArgType() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32(), ValType.I64())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -71,13 +77,10 @@ class FuncTest {
         assertFailsWith<WasmtimeException> {
             func.call(listOf(Val(1), Val(2)))
         }
-
-        store.close()
     }
 
     @Test
     fun testFuncFromRaw() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32(), ValType.I64())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -96,13 +99,10 @@ class FuncTest {
 
         assertEquals(1, results.size)
         assertEquals(Val(3), results[0])
-        
-        store.close()
     }
 
     @Test
     fun testFuncReturnsError() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -126,13 +126,10 @@ class FuncTest {
         assertFailsWith<WasmtimeException> {
             func.call(argsInvalid)
         }
-
-        store.close()
     }
 
     @Test
     fun testFuncCallNoArgs() {
-        val store = Store<Unit>(engine)
         val funcType = FuncType(emptyArray(), emptyArray())
 
         val callback: FuncCallback = { _, _ ->
@@ -143,13 +140,10 @@ class FuncTest {
 
         val results = func.call()
         assertTrue(results.isEmpty())
-
-        store.close()
     }
 
     @Test
     fun testFuncCallMultipleArgsAndResults() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32(), ValType.I64())
         val resultTypes = listOf(ValType.F32(), ValType.F64())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -170,13 +164,10 @@ class FuncTest {
         assertEquals(2, results.size)
         assertEquals(Val(42f), results[0])
         assertEquals(Val(1234567890123456.0), results[1])
-
-        store.close()
     }
 
     @Test
     fun testFuncCallMismatchedArgs() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32(), ValType.I32())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -191,13 +182,10 @@ class FuncTest {
         assertFailsWith<WasmtimeException> {
             func.call(argsMismatched)
         }
-        
-        store.close()
     }
 
     @Test
     fun testFuncCallCaptureValueInClosure() {
-        val store = Store<Unit>(engine)
         val paramTypes = listOf(ValType.I32())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -213,13 +201,11 @@ class FuncTest {
         val results = func.call(args)
         assertEquals(1, results.size)
         assertEquals(Val(12), results[0])
-        
-        store.close()
     }
 
     @Test
     fun testFuncCallCallbackCaptureClassPropertyInClosure() {
-        val store = Store(engine, mutableListOf(1))
+        val storeWithData = Store(engine, mutableListOf(1))
         val paramTypes = listOf(ValType.I32())
         val resultTypes = listOf(ValType.I32())
         val funcType = FuncType(paramTypes.toTypedArray(), resultTypes.toTypedArray())
@@ -232,21 +218,21 @@ class FuncTest {
             }
         }
 
-        val myTestUtil = MyTestUtil(store)
+        val myTestUtil = MyTestUtil(storeWithData)
         val callback: FuncCallback = { _, args ->
             Result.success(myTestUtil.sumI32(args))
         }
 
-        val func = Func(store, funcType, callback)
+        val func = Func(storeWithData, funcType, callback)
 
         val args = listOf(Val(3))
         val results = func.call(args)
         assertEquals(1, results.size)
         assertEquals(Val(4), results[0])
-        assertEquals(2, store.data!!.size)
-        assertEquals(1, store.data!![0])
-        assertEquals(3, store.data!![1])
+        assertEquals(2, storeWithData.data!!.size)
+        assertEquals(1, storeWithData.data!![0])
+        assertEquals(3, storeWithData.data!![1])
         
-        store.close()
+        storeWithData.close()
     }
 }

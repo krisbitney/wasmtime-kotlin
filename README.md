@@ -8,7 +8,13 @@ Although the code is thoroughly documented following the KDoc standard, the docu
 
 ## Adding as a dependency
 
-TODO
+```kotlin
+val nativeMain by getting {
+    dependencies {
+        implementation("io.github.krisbitney:wasmtime-kt:1.0.0")
+    }
+}
+```
 
 ## Quick Start
 
