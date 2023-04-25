@@ -5,4 +5,3 @@
 wasmtime-c-api
 test_stderr_file.txt
 local.properties
-gpg_secret.asc

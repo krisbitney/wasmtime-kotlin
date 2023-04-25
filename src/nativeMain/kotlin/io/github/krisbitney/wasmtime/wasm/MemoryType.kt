@@ -11,6 +11,14 @@ import wasmtime.*
 data class MemoryType(val limits: Limits) : ExternType(ExternType.Kind.MEMORY) {
 
     /**
+     * Creates a new [MemoryType] instance with the given minimum and maximum pages.
+     *
+     * @param min The minimum value required.
+     * @param max The maximum value required, or [Limits.LIMITS_MAX_DEFAULT] if no maximum is specified.
+     */
+    constructor(min: UInt = 0u, max: UInt = Limits.LIMITS_MAX_DEFAULT) : this(Limits(min, max))
+
+    /**
      * Creates a new [MemoryType] instance from the given C pointer.
      *
      * @param memoryType The C pointer to the `wasm_memorytype_t` struct.

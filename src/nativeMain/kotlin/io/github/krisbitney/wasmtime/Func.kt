@@ -4,6 +4,7 @@ import kotlinx.cinterop.*
 import platform.posix.size_t
 import io.github.krisbitney.wasmtime.util.toList
 import io.github.krisbitney.wasmtime.wasm.FuncType
+import io.github.krisbitney.wasmtime.wasm.ValType
 import platform.posix.memcpy
 import wasmtime.*
 
@@ -72,6 +73,21 @@ class Func(
             store.own(this.ptr)
         }.ptr
     )
+
+    /**
+     * Creates a new [Func] instance by providing the store, params, results, and callback.
+     *
+     * @param store A [Store] instance associated with this function.
+     * @param params A list of [Val] arguments to pass to the function.
+     * @param results A list of [Val] representing the results of the function call.
+     * @param callback A [FuncCallback] to be called when the function is invoked.
+     */
+    constructor(
+        store: Store<*>,
+        params: Array<ValType<*>>,
+        results: Array<ValType<*>>,
+        callback: FuncCallback,
+    ) : this(store, FuncType(params, results), callback)
 
     /**
      * Calls this WebAssembly function with the given [args].

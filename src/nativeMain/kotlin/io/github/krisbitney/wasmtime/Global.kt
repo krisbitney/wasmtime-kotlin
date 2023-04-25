@@ -2,6 +2,8 @@ package io.github.krisbitney.wasmtime
 
 import kotlinx.cinterop.*
 import io.github.krisbitney.wasmtime.wasm.GlobalType
+import io.github.krisbitney.wasmtime.wasm.Mutability
+import io.github.krisbitney.wasmtime.wasm.ValType
 import wasmtime.*
 
 /**
@@ -59,6 +61,22 @@ class Global(
             store.own(this.ptr)
         }.ptr
     )
+
+    /**
+     * Creates a new host-defined global value within the provided store.
+     *
+     * @param store The [Store] in which to create the global.
+     * @param content The [ValType] specifying the WebAssembly type of the global being created.
+     * @param mutability The [Mutability] of the global being created.
+     * @param value The initial value of the global, specified as a [Val].
+     * @throws [WasmtimeException] If the provided value does not match the specified type of the global or comes from a different store.
+     */
+    constructor(
+        store: Store<*>,
+        content: ValType.Kind,
+        mutability: Mutability,
+        value: Val
+    ): this(store, GlobalType(content, mutability), value)
 
     /**
      * Gets the current value of the global.

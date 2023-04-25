@@ -16,6 +16,15 @@ data class TableType(
 ) : ExternType(ExternType.Kind.TABLE) {
 
     /**
+     * Constructs a new [TableType] instance with the given element type and limits.
+     *
+     * @param element The [ValType.Kind] describing the element type of the table.
+     * @param min The minimum number of items in the table
+     * @param max The maximum number of items in the table
+     */
+    constructor(element: ValType.Kind, min: UInt = 0u, max: UInt = Limits.LIMITS_MAX_DEFAULT) : this(element, Limits(min, max))
+
+    /**
      * Constructs a new [TableType] instance from a C pointer to a `wasm_tabletype_t`.
      *
      * @param tableType The C pointer to the `wasm_tabletype_t`.

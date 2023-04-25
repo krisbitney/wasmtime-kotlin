@@ -1,5 +1,6 @@
 package io.github.krisbitney.wasmtime
 
+import io.github.krisbitney.wasmtime.wasm.Limits
 import kotlinx.cinterop.*
 import platform.posix.size_t
 import io.github.krisbitney.wasmtime.wasm.MemoryType
@@ -65,6 +66,17 @@ class Memory(
                     store.own(this.ptr)
                 }.ptr
             )
+
+    /**
+     * Creates a new memory object within the provided [store] and the specified memory limits.
+     *
+     * @param store A [Store] in which to create the memory object.
+     * @param min The minimum number of WebAssembly pages in the memory.
+     * @param max The maximum number of WebAssembly pages in the memory,
+     * or [Limits.LIMITS_MAX_DEFAULT] if no maximum is specified.
+     */
+    constructor(store: Store<*>, min: UInt = 0u, max: UInt = Limits.LIMITS_MAX_DEFAULT) :
+            this(store, MemoryType(min, max))
 
     /**
      * Grows the memory by the specified [delta] number of pages.

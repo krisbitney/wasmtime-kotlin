@@ -1,7 +1,9 @@
 package io.github.krisbitney.wasmtime
 
+import io.github.krisbitney.wasmtime.wasm.Limits
 import kotlinx.cinterop.*
 import io.github.krisbitney.wasmtime.wasm.TableType
+import io.github.krisbitney.wasmtime.wasm.ValType
 import wasmtime.*
 
 /**
@@ -61,6 +63,44 @@ class Table(
             cTable.ptr
         }
     )
+
+    /**
+     * Constructs a new table with the specified [store], initial value [init],
+     * element type [element], and [limits].
+     * The initial value will be copied into each element of the table.
+     * Valid [Val] types are [Val.Kind.EXTERNREF] and [Val.Kind.FUNCREF].
+     *
+     * @param store The [Store] to create the table within.
+     * @param init The initial value for the table's elements.
+     * @param element The [ValType.Kind] of the elements in the table.
+     * @param limits The [Limits] of the table.
+     */
+    constructor(
+        store: Store<*>,
+        init: Val,
+        element: ValType.Kind,
+        limits: Limits = Limits()
+    ): this(store, init, TableType(element, limits))
+
+    /**
+     * Constructs a new table with the specified [store], initial value [init],
+     * element type [element], and [min] and [max] numbers of elements
+     * The initial value will be copied into each element of the table.
+     * Valid [Val] types are [Val.Kind.EXTERNREF] and [Val.Kind.FUNCREF].
+     *
+     * @param store The [Store] to create the table within.
+     * @param init The initial value for the table's elements.
+     * @param element The [ValType.Kind] of the elements in the table.
+     * @param min The minimum number of elements in the table.
+     * @param max The maximum number of elements in the table.
+     */
+    constructor(
+        store: Store<*>,
+        init: Val,
+        element: ValType.Kind,
+        min: UInt = 0u,
+        max: UInt = Limits.LIMITS_MAX_DEFAULT
+    ): this(store, init, TableType(element, min, max))
 
     /**
      * Retrieves the value at the specified [index] in the table.
