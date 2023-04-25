@@ -5,7 +5,7 @@ plugins {
     id("de.undercouch.download") version "5.4.0"
 }
 
-group = "eth.krisbitney"
+group = "io.github.krisbitney"
 version = "1.0-SNAPSHOT"
 
 repositories {
