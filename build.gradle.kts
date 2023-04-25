@@ -19,8 +19,7 @@ val wasmtimeCApiTargets = listOf(
     "x86_64-macos",
     "aarch64-linux",
     "x86_64-linux",
-    // TODO: can only link needed mingw libs on windows machine
-//    "x86_64-mingw"
+    "x86_64-mingw"
 )
 
 kotlin {
@@ -37,7 +36,7 @@ kotlin {
         macosX64("macosX64"),
         linuxX64("linuxX64"),
         linuxArm64("linuxArm64"),
-//        mingwX64("mingwX64"),
+        mingwX64("mingwX64"),
     )
 
     nativeTargets.forEach {

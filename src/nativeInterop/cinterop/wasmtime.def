@@ -5,5 +5,5 @@ package = wasmtime
 staticLibraries = libwasmtime.a
 
 compilerOpts.mingw = -DWASM_API_EXTERN= -DWASI_API_EXTERN=
-linkerOpts.mingw = ws2_32.lib advapi32.lib userenv.lib ntdll.lib shell32.lib ole32.lib bcrypt.lib
+linkerOpts.mingw = -lws2_32 -ladvapi32 -luserenv -lntdll -lshell32 -lole32 -lbcrypt
 linkerOpts.linux = -lpthread -ldl -lm -lrt
