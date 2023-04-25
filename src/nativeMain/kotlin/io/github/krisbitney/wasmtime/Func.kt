@@ -15,7 +15,7 @@ import wasmtime.*
  * @param args A list of [Val] objects representing the arguments passed to the function.
  * @return A [Result] containing a list of [Val] objects representing the results of the function call.
  */
-typealias FuncCallback = (caller: io.github.krisbitney.wasmtime.Caller, args: List<Val>) -> Result<List<Val>>
+typealias FuncCallback = (caller: Caller, args: List<Val>) -> Result<List<Val>>
 
 /**
  * Represents a function in the WebAssembly store.
@@ -172,7 +172,7 @@ fun cFuncCallback(
     nresults: size_t
 ): CPointer<wasm_trap_t>? {
     val fn = cEnv!!.asStableRef<FuncCallback>().get()
-    val caller = io.github.krisbitney.wasmtime.Caller(cCaller!!)
+    val caller = Caller(cCaller!!)
     val args = cArgs!!.toList(nargs.toInt())
 
     val callbackResult: Result<List<Val>> = fn(caller, args)
