@@ -3,6 +3,3 @@ Create a wasmtimeScope function that creates a scope for the lifetime of wasmtim
 Improve thread safety?
  - review headers for thread safety guidelines
  - implement thread safety where possible
-
-Configure build script
- - publish build artifacts for each target to maven central

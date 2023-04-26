@@ -33,8 +33,8 @@ class MemoryTest {
         val memoryType = MemoryType(Limits(1u, 10u))
         val memory = Memory(store, memoryType)
 
-        assertEquals(65536, memory.dataSize.toInt())
-        assertTrue(memory.data.all { it == 0.toByte() })
+        assertEquals(65536, memory.buffer.size)
+        assertTrue(memory.buffer.all { it == 0.toByte() })
     }
 
     @Test
@@ -42,7 +42,7 @@ class MemoryTest {
         val memoryType = MemoryType(Limits(1u, 10u))
         val memory = Memory(store, memoryType)
 
-        assertEquals(1u, memory.size)
+        assertEquals(1, memory.size)
     }
 
     @Test
@@ -52,7 +52,7 @@ class MemoryTest {
 
         val prevSize = memory.grow(2u)
         assertEquals(1u, prevSize)
-        assertEquals(3u, memory.size)
+        assertEquals(3, memory.size)
     }
 
     @Test
