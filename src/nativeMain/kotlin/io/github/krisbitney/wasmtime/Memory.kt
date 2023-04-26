@@ -105,7 +105,7 @@ class Memory(
 
         override val size: Int get() = wasmtime_memory_data_size(store, memory).toInt()
 
-        override fun get(index: Int): Byte {
+        override operator fun get(index: Int): Byte {
             if (index < 0 || index >= size) {
                 throw IndexOutOfBoundsException("Index out of bounds: $index")
             }
@@ -117,7 +117,7 @@ class Memory(
          *
          * @return the element previously at the specified position.
          */
-        fun set(index: Int, element: Byte): Byte {
+        operator fun set(index: Int, element: Byte): Byte {
             if (index < 0 || index >= size) {
                 throw IndexOutOfBoundsException("Index out of bounds: $index")
             }
@@ -183,9 +183,9 @@ class Memory(
         fun copyFrom(
             src: ByteArray,
             startIndex: Int = 0,
-            endIndex: Int = size,
+            endIndex: Int = src.size,
             destinationOffset: Int = 0,
-        ) {
+        ): Buffer {
             require(startIndex in 0..src.size) { "startIndex ($startIndex) is out of range: 0..$src.size" }
             require(endIndex in 0..src.size) { "endIndex ($endIndex) is out of range: 0..$src.size" }
             require(startIndex <= endIndex) { "startIndex ($startIndex) is greater than endIndex ($endIndex)" }
@@ -197,7 +197,8 @@ class Memory(
             for (i in 0 until length) {
                 dataPtr[destinationOffset + i] = src[startIndex + i].toUByte()
             }
-        }
 
+            return this
+        }
     }
 }
