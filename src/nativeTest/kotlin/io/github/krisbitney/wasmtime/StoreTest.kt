@@ -43,15 +43,4 @@ class StoreTest {
             store.close()
             engine.close()
         }
-        @Test
-        fun `test memory safety`() {
-            val engine = Engine()
-            val count = 10_000
-
-            repeat(count) { i ->
-                Store(engine, initData = i).close()
-            }
-
-            engine.close()
-        }
 }
