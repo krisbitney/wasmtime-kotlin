@@ -36,6 +36,6 @@ class ErrorFrame(
     }
 
     override fun toString(): String {
-        return "ErrorFrame(funcIndex=$funcIndex, funcOffset=$funcOffset, moduleOffset=$moduleOffset, funcName=$funcName, moduleName=$moduleName)"
+        return "WasmStackTrace(funcIndex=$funcIndex, funcOffset=$funcOffset, moduleOffset=$moduleOffset, funcName=$funcName, moduleName=$moduleName)"
     }
 }

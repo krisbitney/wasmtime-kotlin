@@ -42,7 +42,8 @@ class WasmtimeException(private val error: CPointer<wasmtime_error_t>, ownedByCa
         wasmtime_error_message(error, msg.ptr)
         var result = msg.data?.toKString() ?: ""
         exitStatus?.let { result += " (exit status: $it)" }
-        wasmTrace.forEach { frame -> result += "\n    $frame" }
+        // TODO: the wasm trace func and module names are always null
+//        wasmTrace.forEach { frame -> result += "\n    $frame" }
         result
     }
 

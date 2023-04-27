@@ -46,7 +46,8 @@ class Trap(private val trap: CPointer<wasm_trap_t>) : Throwable() {
         wasm_trap_message(trap, msg.ptr)
         var result = msg.data?.toKString() ?: ""
         trapCode?.let { result += " (code: ${it.name})" }
-        wasmTrace.forEach { frame -> result += "\n    $frame" }
+        // TODO: the wasm trace func and module names are always null
+//        wasmTrace.forEach { frame -> result += "\n    $frame" }
         result
     }
 

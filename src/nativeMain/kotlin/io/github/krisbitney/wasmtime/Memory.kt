@@ -185,7 +185,7 @@ class Memory(
             startIndex: Int = 0,
             endIndex: Int = src.size,
             destinationOffset: Int = 0,
-        ): Buffer {
+        ) {
             require(startIndex in 0..src.size) { "startIndex ($startIndex) is out of range: 0..$src.size" }
             require(endIndex in 0..src.size) { "endIndex ($endIndex) is out of range: 0..$src.size" }
             require(startIndex <= endIndex) { "startIndex ($startIndex) is greater than endIndex ($endIndex)" }
@@ -197,8 +197,6 @@ class Memory(
             for (i in 0 until length) {
                 dataPtr[destinationOffset + i] = src[startIndex + i].toUByte()
             }
-
-            return this
         }
     }
 }
