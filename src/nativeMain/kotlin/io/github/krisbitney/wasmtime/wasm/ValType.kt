@@ -142,7 +142,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
          * @param valType A pointer to a [wasm_valtype_t] representing a WebAssembly value type.
          * @return A [ValType] instance corresponding to the input C value.
          */
-        fun fromCValue(valType: CPointer<wasm_valtype_t>): ValType<*> {
+        internal fun fromCValue(valType: CPointer<wasm_valtype_t>): ValType<*> {
             val kind = Kind.fromInt(wasm_valtype_kind(valType).toInt())
             return when (kind) {
                 Kind.I32 -> I32()
@@ -160,7 +160,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
          * @param valType A pointer to a [wasm_valtype_t] representing a WebAssembly value type.
          * @return The [Kind] instance corresponding to the input C value.
          */
-        fun kindFromCValue(valType: CPointer<wasm_valtype_t>): Kind {
+        internal fun kindFromCValue(valType: CPointer<wasm_valtype_t>): Kind {
             return Kind.fromInt(wasm_valtype_kind(valType).toInt())
         }
 
@@ -169,7 +169,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
          *
          * @param valType A pointer to a [wasm_valtype_t] representing a WebAssembly value type.
          */
-        fun deleteCValue(valType: CPointer<wasm_valtype_t>) {
+        internal fun deleteCValue(valType: CPointer<wasm_valtype_t>) {
             wasm_valtype_delete(valType)
         }
 
@@ -180,7 +180,7 @@ sealed class ValType<T : Any>(val kind: Kind) {
          * @return A pointer to the allocated [wasm_valtype_t] corresponding to the input [Kind].
          * @throws Error If the allocation fails.
          */
-        fun allocateCValue(kind: Kind): CPointer<wasm_valtype_t> {
+        internal fun allocateCValue(kind: Kind): CPointer<wasm_valtype_t> {
             return wasm_valtype_new(kind.value.toUByte()) ?: throw Exception("failed to create wasm_valtype")
         }
     }

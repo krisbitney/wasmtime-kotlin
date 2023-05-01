@@ -70,7 +70,7 @@ class Store<T>(val engine: Engine, initData: T? = null) : AutoCloseable {
         wasmtime_store_limiter(store, memorySize, tableElements, instances, tables, memories)
     }
 
-    fun own(ptr: COpaquePointer) = owned.add(ptr)
+    internal fun own(ptr: COpaquePointer) = owned.add(ptr)
 
     override fun close() {
         wasmtime_store_delete(store)

@@ -29,7 +29,7 @@ data class Limits(val min: UInt = 0u, val max: UInt = LIMITS_MAX_DEFAULT) {
          * @param max The maximum value required, or [LIMITS_MAX_DEFAULT] if no maximum is specified.
          * @return A [wasm_limits_t] instance with the specified minimum and maximum values.
          */
-        fun allocateCValue(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): CPointer<wasm_limits_t> {
+        internal fun allocateCValue(min: UInt = 0u, max: UInt = LIMITS_MAX_DEFAULT): CPointer<wasm_limits_t> {
             val cLimits = nativeHeap.alloc<wasm_limits_t>()
             cLimits.min = min
             cLimits.max = max

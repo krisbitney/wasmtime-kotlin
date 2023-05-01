@@ -40,7 +40,7 @@ data class GlobalType(
      * Companion object providing utility methods for working with C values and pointers
      * related to the [GlobalType] class.
      */
-    companion object {
+    internal companion object {
         /**
          * Allocates a new C pointer for the given [GlobalType] and creates a `wasm_globaltype_t` instance.
          *

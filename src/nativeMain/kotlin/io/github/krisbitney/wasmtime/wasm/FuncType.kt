@@ -42,7 +42,7 @@ data class FuncType(
      * Companion object providing utility methods for working with C values and pointers
      * related to the [FuncType] class.
      */
-    companion object {
+    internal companion object {
         /**
          * Allocates a new C pointer for the given [FuncType] and creates a `wasm_functype_t` instance.
          *

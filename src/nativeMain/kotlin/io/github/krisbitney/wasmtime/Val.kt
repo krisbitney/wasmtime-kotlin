@@ -169,7 +169,7 @@ data class Val(val kind: Kind, val value: Any) {
     /**
      * A companion object that provides utility functions for creating and working with [Val] instances.
      */
-    companion object {
+    internal companion object {
         /**
          * Creates a [Val] instance from a given [wasmtime_val_t] C pointer.
          *

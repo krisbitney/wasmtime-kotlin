@@ -22,7 +22,7 @@ sealed class Extern(
      * Companion object for [Extern] class that provides helper functions for working
      * with external WebAssembly values.
      */
-    companion object {
+    internal companion object {
         /**
          * Constructs an [Extern] object from the given [extern] of type [wasmtime_extern_t].
          * The returned Extern is owned by the caller and must be deleted.

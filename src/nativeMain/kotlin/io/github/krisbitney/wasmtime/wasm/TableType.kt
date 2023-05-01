@@ -47,7 +47,7 @@ data class TableType(
      * Companion object providing utility methods for working with C values and pointers
      * related to the [TableType] class.
      */
-    companion object {
+    internal companion object {
         /**
          * Allocates a new C pointer for the given [TableType] and creates a `wasm_tabletype_t` instance.
          *

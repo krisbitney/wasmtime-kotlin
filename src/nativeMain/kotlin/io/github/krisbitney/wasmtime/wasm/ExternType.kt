@@ -12,7 +12,7 @@ import wasmtime.*
  */
 sealed class ExternType(val kind: Kind) {
 
-    companion object {
+    internal companion object {
         /**
          * Constructs an [ExternType] subclass from a C pointer [externType] of type [wasm_externtype_t].
          * The [externType] pointer is owned by caller.

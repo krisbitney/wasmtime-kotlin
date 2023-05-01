@@ -34,10 +34,10 @@ kotlin {
 
     val nativeTargets = listOf(
         macosArm64("native"),
-        macosX64("macosX64"),
-        linuxX64("linuxX64"),
-        linuxArm64("linuxArm64"),
-        mingwX64("mingwX64"),
+        macosX64(),
+        linuxX64(),
+        linuxArm64(),
+        mingwX64(),
     )
 
     nativeTargets.forEach {

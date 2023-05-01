@@ -38,7 +38,7 @@ data class MemoryType(val limits: Limits) : ExternType(ExternType.Kind.MEMORY) {
      * Companion object providing utility methods for working with C values and pointers
      * related to the [MemoryType] class.
      */
-    companion object {
+    internal companion object {
         /**
          * Allocates a new C pointer for the given [MemoryType] and creates a `wasm_memorytype_t` instance.
          *
