@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.de.undercouch.gradle.tasks.download.Download
 plugins {
     kotlin("multiplatform") version "1.8.20"
     id("de.undercouch.download") version "5.4.0"
+    id("org.jetbrains.dokka") version "1.8.10"
     id("convention.publication")
 }
 
@@ -24,13 +25,13 @@ val wasmtimeCApiTargets = listOf(
 )
 
 kotlin {
-    jvm {
-        jvmToolchain(17)
-        withJava()
-        testRuns["test"].executionTask.configure {
-            useJUnitPlatform()
-        }
-    }
+//    jvm {
+//        jvmToolchain(17)
+//        withJava()
+//        testRuns["test"].executionTask.configure {
+//            useJUnitPlatform()
+//        }
+//    }
 
     val nativeTargets = listOf(
         macosArm64("native"),
@@ -67,8 +68,8 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
-        val jvmMain by getting
-        val jvmTest by getting
+//        val jvmMain by getting
+//        val jvmTest by getting
         val nativeMain by getting
         val nativeTest by getting
     }
@@ -120,6 +121,13 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.CInteropProcess>().configureEac
 tasks.build {
     dependsOn(tasks.getByName("unpackWasmtimeCApi"))
     mustRunAfter(tasks.getByName("unpackWasmtimeCApi"))
+}
+
+// javadoc generation for Maven repository publication
+tasks.register<Jar>("dokkaJavadocJar") {
+    dependsOn(tasks.dokkaJavadoc)
+    from(tasks.dokkaJavadoc.flatMap { it.outputDirectory })
+    archiveClassifier.set("javadoc")
 }
 
 // print stdout during tests

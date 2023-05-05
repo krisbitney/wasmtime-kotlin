@@ -34,51 +34,51 @@ if (secretPropsFile.exists()) {
     ext["ossrhPassword"] = System.getenv("OSSRH_PASSWORD")
 }
 
-val javadocJar by tasks.registering(Jar::class) {
-    archiveClassifier.set("javadoc")
-}
-
 fun getExtraString(name: String) = ext[name]?.toString()
 
-publishing {
-    // Configure maven central repository
-    repositories {
-        maven {
-            name = "sonatype"
-            setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-            credentials {
-                username = getExtraString("ossrhUsername")
-                password = getExtraString("ossrhPassword")
+afterEvaluate {
+    val javadocJar: TaskProvider<Jar> = rootProject.tasks.named("dokkaJavadocJar", Jar::class.java)
+
+    publishing {
+        // Configure maven central repository
+        repositories {
+            maven {
+                name = "sonatype"
+                setUrl("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+                credentials {
+                    username = getExtraString("ossrhUsername")
+                    password = getExtraString("ossrhPassword")
+                }
             }
         }
-    }
 
-    // Configure all publications
-    publications.withType<MavenPublication> {
-        // Stub javadoc.jar artifact
-        artifact(javadocJar.get())
+        // Configure all publications
+        publications.withType<MavenPublication> {
+            // Stub javadoc.jar artifact
+            artifact(javadocJar.get())
 
-        // Provide artifacts information requited by Maven Central
-        pom {
-            name.set("Wasmtime-kt")
-            description.set("Wasmtime for Kotlin Multiplatform")
-            url.set("https://github.com/krisbitney/wasmtime-kotlin")
+            // Provide artifacts information requited by Maven Central
+            pom {
+                name.set("Wasmtime-kt")
+                description.set("Wasmtime for Kotlin Multiplatform")
+                url.set("https://github.com/krisbitney/wasmtime-kotlin")
 
-            licenses {
-                license {
-                    name.set("MIT")
-                    url.set("https://opensource.org/licenses/MIT")
+                licenses {
+                    license {
+                        name.set("MIT")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
                 }
-            }
-            developers {
-                developer {
-                    id.set("krisbitney")
-                    name.set("Kristofer Bitney")
-                    email.set("kris@dorg.tech")
+                developers {
+                    developer {
+                        id.set("krisbitney")
+                        name.set("Kristofer Bitney")
+                        email.set("kris@dorg.tech")
+                    }
                 }
-            }
-            scm {
-                url.set("https://github.com/krisbitney/wasmtime-kotlin.git")
+                scm {
+                    url.set("https://github.com/krisbitney/wasmtime-kotlin.git")
+                }
             }
         }
     }
